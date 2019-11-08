@@ -1,0 +1,1 @@
+-intstyle "ise" -incremental -o "C:/SharedVmchine/NDI_mask_meng/vga_graphic/divider_testbench_isim_beh.exe" -prj "C:/SharedVmchine/NDI_mask_meng/vga_graphic/divider_testbench_beh.prj" "work.divider_testbench" 

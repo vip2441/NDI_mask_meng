@@ -48,7 +48,7 @@ end component;
 component level_generator is
     Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
 				pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
-				mem_add_x: out std_logic_vector(5 downto 0);
+				mem_add: out std_logic_vector(5 downto 0);
 				mem_data: in std_logic_vector(2 downto 0);
            clock : in  STD_LOGIC;
 			  border_draw_en : out  STD_LOGIC;
@@ -152,7 +152,7 @@ lvl_load_generator: level_generator
 		  pixy_offs => pixy_arena,
 		  inside_pixx_offs => inside_pix_x, 
 		  inside_pixy_offs => inside_pix_y,	  
-		  mem_add_x => lvl_mem_addx,
+		  mem_add => lvl_mem_addx,
 		  mem_data => lvl_mem_data,
         clock => clk,
 		  border_draw_en => border_draw_en,

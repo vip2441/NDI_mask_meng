@@ -24,7 +24,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity level_generator is
     Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
 			  pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
-			  mem_add_x: out std_logic_vector(5 downto 0);
+			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
            clock : in  STD_LOGIC;
 			  border_draw_en : out  STD_LOGIC;
@@ -34,27 +34,28 @@ end level_generator;
 
 architecture Behavioral of level_generator is
 
---component custom_counter is
---		generic(modulo : integer := 41;
---					vector_length : integer := 6);
---    Port ( clk,ce,clr : in  STD_LOGIC;
---           ovf : out  STD_LOGIC;
---           q : out  STD_LOGIC_VECTOR ((vector_length - 1) downto 0));
---end component;
+component frequency_divider is
+		generic(modulo : natural := 17);		--deli cislem 2^(modulo + 1)
+    Port ( clk_in : in  STD_LOGIC;
+           clk_out_div : out  STD_LOGIC := '0');
+end component;
 
---registr aktualniho levelu
-type REG_type is array(0 to 63) of std_logic_vector(2 downto 0);
-signal level_reg : REG_type := (others => (others => '0'));			--nacteni levelu sem pro rychlejsi cteni
+signal divided_clock: std_logic := '0';
 
---signal counter_enable, clear_counter, overflow: std_logic;	-- := '0';
---signal count : std_logic_vector(10 downto 0);	-- := (others => '0');
---
 --signal game_on: std_logic;
 
 --citace pixelu v radcich a sloupcich
 signal cntx, cnty, 					--citace cele obrazovky
 		cntxoffs, cntyoffs, 					--citace hranic hraci plochy
 		inside_area_count_x, inside_area_count_y: natural range 0 to 1200 := 0;				--citace vnitrni oblasti hraci plochy
+	
+--experimentalni signaly pro pohyb	
+constant start_pos: std_logic_vector(7 downto 0) := "00101011"; 
+constant end_pos: std_logic_vector(7 downto 0) := "11001011";
+
+signal move: std_logic := '1';		--informace o tom, zda ma probihat pohyb
+signal ack: std_logic := '0';			--informace o vykonani pohybu
+signal mov_offs_x, mov_offs_y: natural range 0 to 800 := 0;		--offset hybaneho objektu
 
 --rozmery hraci plochy		
 constant dimm_x: natural range 0 to 800 := 512;				
@@ -69,14 +70,11 @@ signal row, column: natural range 0 to 35:= 0;
 
 begin
 
---	memory_load_counter:custom_counter
---	port map(
---		clk =>clock,
---		ce => counter_enable,
---		clr => clear_counter,
---		ovf => overflow,
---		q => count	
---	);
+	divider: frequency_divider
+		port map(
+			clk_in => clock,
+			clk_out_div => divided_clock
+		);
 	
 	--pocitadla radku a sloupcu cele obrazovky
 	cntx <= to_integer(unsigned(pix_x));
@@ -89,25 +87,8 @@ begin
 	--pocitadlo vnitrni hraci plochy
 	inside_area_count_x <= (cntx - area_offset_x - 64) when ((cntx >= 64 + area_offset_x) and (cntx < 448 + 64 + area_offset_x)) else 1200;
 	inside_area_count_y <= (cnty - area_offset_y - 64) when ((cnty >= 64 + area_offset_y) and (cnty < 384 + 64 + area_offset_y)) else 1200;
-	
---	process(game_on, overflow, count)
---	begin
---		if(game_on = '1' and overflow = '0') then
---			counter_enable <= '1';
---			mem_add_x <= count;
---			level_reg(to_integer(unsigned(count))) <= mem_data;
---		elsif(game_on = '1' and overflow = '1') then
---			counter_enable <= '0';
---			mem_add_x <= (others => '0');
---			level_reg(to_integer(unsigned(count))) <= "000";
---		else
---			counter_enable <= '0';
---			mem_add_x <= (others => '0');
---			level_reg(to_integer(unsigned(count))) <= "000";
---		end if;
---	end process;
-	
-	observe_rows:process(inside_area_count_y)			--prochazeni radku
+		
+	observe_rows:process(inside_area_count_y)			--prochazeni radku v pameti
 	begin
 			if(inside_area_count_y >= 0 and inside_area_count_y < 64) then
 				row <= 0;
@@ -124,7 +105,7 @@ begin
 			end if;
 	end process;
 	
-	observe_columns:process(inside_area_count_x)			--prochazeni slupcu
+	observe_columns:process(inside_area_count_x)			--prochazeni slupcu v pameti
 	begin
 			if(inside_area_count_x >= 0 and inside_area_count_x < 64) then
 				column <= 0;
@@ -143,7 +124,7 @@ begin
 			end if;
 	end process;
 	
-	read_from_memory:process(clock, inside_area_count_x, inside_area_count_y,cntxoffs,cntyoffs)
+	read_from_memory:process(clock, inside_area_count_x, inside_area_count_y,cntxoffs,cntyoffs)			--cte z pameti a voli objekt v externim dekoderu
 	begin
 		if(rising_edge(clock)) then
 				--kresleni vnejsich sten
@@ -151,23 +132,54 @@ begin
 										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										((cntxoffs >=dimm_x and cntxoffs < 64 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										(cntxoffs < 64 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then
-				selected_object <= "101";
 				border_draw_en <= '1';
-				mem_add_x <= (others => '0');
+				mem_add <= (others => '1');
+				selected_object <= "101";
+				
 				--kresleni vnitrni oblasti
 			elsif((inside_area_count_x < 448) and (inside_area_count_y < 384)) then
 				--selected_object <= level_reg(row + column);
 				border_draw_en <= '0';
+				mem_add <= std_logic_vector(to_unsigned(row + column,6));
 				selected_object <= mem_data;
-				mem_add_x <= std_logic_vector(to_unsigned(row + column,6));
 				
 				--nekreslit nic
 			else
-				selected_object <= "100";
 				border_draw_en <= '0';
-				mem_add_x <= (others => '0');
+				mem_add <= (others => '1');
+				selected_object <= "100";
 			end if;
 		end if;
+	end process;
+	
+--	constant start_pos: std_logic_vector(7 downto 0) := "00101011"; 11-hrac, 00- sutr
+--constant end_pos: std_logic_vector(7 downto 0) := "11001011";
+--
+--signal move: std_logic := '1';		--informace o tom, zda ma probihat pohyb
+--signal ack: std_logic := '0';			--informace o vykonani pohybu
+--signal mov_offs_x, mov_offs_y: natural 0 to 800 := 0;		--offset hybaneho objektu
+--signal direction: std_logic;			--priznak smeru 1-doprava/nahoru, 0-doleva/dolu
+	
+	move_object: process(divided_clock, move, inside_area_count_x, inside_area_count_y)			--meni offset vykreslovaneho objektu
+	begin
+		if(rising_edge(divided_clock)) then
+			if(move = '1') then
+				if((start_pos(7 downto 5) xnor end_pos(7 downto 5)) = "111") then			--pokud se x-ove souradnice rovnaji, probiha VERTIKALNI pohyb
+					if((signed(end_pos(4 downto 2)) - signed(start_pos(4 downto 2))) > 0) then		--probiha pohyb DOLU
+						mov_offs_y <= mov_offs_y + 1;
+					else					--probiha pohyb NAHORU
+						mov_offs_y <= mov_offs_y - 1;
+					end if;
+					
+				else					--v tomto pripade se x-ove souradnice nerovnaji, takze probiha HORIZONTALNI pohyb
+					if((signed(end_pos(7 downto 5)) - signed(start_pos(7 downto 5))) > 0) then		--probiha pohyb DOPRAVA
+						mov_offs_x <= mov_offs_x + 1;
+					else				--probiha pohyb DOLEVA
+						mov_offs_x <= mov_offs_x - 1;
+					end if;
+				end if;
+			end if;		
+		end if;		
 	end process;
 	
 	--citace pixelu pro celou arenu

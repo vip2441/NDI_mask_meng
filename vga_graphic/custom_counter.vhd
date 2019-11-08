@@ -22,8 +22,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity custom_counter is
-		generic(modulo : integer := 41;
-					vector_length : integer := 6);
+		generic(modulo : natural range 0 to 1000 := 65;
+					vector_length : natural range 0 to 50 := 10);
     Port ( clk,ce,clr : in  STD_LOGIC;
            ovf : out  STD_LOGIC;
            q : out  STD_LOGIC_VECTOR ((vector_length - 1) downto 0));

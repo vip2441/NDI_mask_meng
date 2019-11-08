@@ -31,37 +31,37 @@ begin
 
 process(object)
 begin
-	if(object = "101")then
+	if(object = "101")then				--zvolena stena
 		wall_obj <= '1';
 		stone_obj <= '0';
 		floor_obj <= '0';
 		player_obj <= '0';
 		food_obj <= '0';
-	elsif(object = "110") then
+	elsif(object = "110") then			--zvolen kamen
 		wall_obj <= '0';
 		stone_obj <= '1';
 		floor_obj <= '0';
 		player_obj <= '0';
 		food_obj <= '0';
-	elsif(object = "000") then
+	elsif(object = "000") then			--zvolena podlaha
 		wall_obj <= '0';
 		stone_obj <= '0';
 		floor_obj <= '1';
 		player_obj <= '0';
 		food_obj <= '0';
-	elsif(object = "111") then
+	elsif(object = "111") then			--zvolen hrac
 		wall_obj <= '0';
 		stone_obj <= '0';
 		floor_obj <= '0';
 		player_obj <= '1';
 		food_obj <= '0';
-	elsif(object = "011")then
+	elsif(object = "011")then			--zvoleno jidlo
 		wall_obj <= '0';
 		stone_obj <= '0';
 		floor_obj <= '0';
 		player_obj <= '0';
 		food_obj <= '1';
-	else
+	else										--nic nezvoleno
 		wall_obj <= '0';
 		stone_obj <= '0';
 		floor_obj <= '0';
