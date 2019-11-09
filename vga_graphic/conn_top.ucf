@@ -1,4 +1,5 @@
 NET "clk" LOC = "T9";
+NET "move" LOC = "K13";
 NET "HS" LOC = "R9";
 NET "VS" LOC = "T10";
 NET "R" LOC = "R12";

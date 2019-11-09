@@ -23,7 +23,10 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity top is
     Port ( clk : in  STD_LOGIC := '0';
-           HS,VS,R,G,B, frame_tick : out  STD_LOGIC := '0');
+           HS,VS,R,G,B, frame_tick : out  STD_LOGIC := '0';
+			  
+			  --experimentalni signaly
+			  move: in std_logic := '0');
 end top;
 
 architecture Behavioral of top is
@@ -50,7 +53,7 @@ component level_generator is
 				pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
 				mem_add: out std_logic_vector(5 downto 0);
 				mem_data: in std_logic_vector(2 downto 0);
-           clock : in  STD_LOGIC;
+           clock, move : in  STD_LOGIC;
 			  border_draw_en : out  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0));
 end component;
@@ -155,6 +158,7 @@ lvl_load_generator: level_generator
 		  mem_add => lvl_mem_addx,
 		  mem_data => lvl_mem_data,
         clock => clk,
+		  move => move,
 		  border_draw_en => border_draw_en,
 		  selected_object => selected_object
 		);

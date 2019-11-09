@@ -26,9 +26,12 @@ entity level_generator is
 			  pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
-           clock : in  STD_LOGIC;
+           clock: in  STD_LOGIC;
 			  border_draw_en : out  STD_LOGIC;
-			  selected_object: out std_logic_vector(2 downto 0)
+			  selected_object: out std_logic_vector(2 downto 0);
+			  --experimentalni signaly
+			  move, reset : in  STD_LOGIC;
+			  ack: out std_logic
 			  );
 end level_generator;
 
@@ -53,8 +56,7 @@ signal cntx, cnty, 					--citace cele obrazovky
 constant start_pos: std_logic_vector(7 downto 0) := "00101011"; 
 constant end_pos: std_logic_vector(7 downto 0) := "11001011";
 
-signal move: std_logic := '1';		--informace o tom, zda ma probihat pohyb
-signal ack: std_logic := '0';			--informace o vykonani pohybu
+--signaly pro pohyb, vykresleni objektu v dane vzdalenosti
 signal mov_offs_x, mov_offs_y: natural range 0 to 800 := 0;		--offset hybaneho objektu
 
 --rozmery hraci plochy		
@@ -67,6 +69,11 @@ constant area_offset_y : natural range 0 to 200 := 0;
 
 --prochazeni v pameti
 signal row, column: natural range 0 to 35:= 0;
+
+--stavovy automat pohybu
+type state_type is(LOAD,CHOOSE_MOVE, MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, MOVE_DONE);
+signal present_state, next_state: state_type;
+signal performing_move, ack_internal: std_logic := '0';
 
 begin
 
@@ -124,11 +131,39 @@ begin
 			end if;
 	end process;
 	
-	read_from_memory:process(clock, inside_area_count_x, inside_area_count_y,cntxoffs,cntyoffs)			--cte z pameti a voli objekt v externim dekoderu
+	arena_draw_fsm:process(present_state)
+	begin
+		if (present_state = DRAWING_BORDERS) then				--kresli hranice
+			border_draw_en <= '1';
+			mem_add <= (others => '1');
+			selected_object <= "101";
+			
+		elsif(present_state = DRAWING_ARENA) then				--kresli arenu, kdyz neprobiha pohyb
+			border_draw_en <= '0';
+			mem_add <= std_logic_vector(to_unsigned(row + column,6));
+			selected_object <= mem_data;
+			
+		elsif(present_state = FLOOR_INSTEAD_PLAYER) then
+			border_draw_en <= '0';
+			mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+			selected_object <= "000";
+				
+		elsif(present_state = FLOOR_INSTEAD_STONE) then
+			border_draw_en <= '0';
+			mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+			selected_object <= "000";
+			
+		
+		
+		
+			
+		end if;		
+	end process;
+	
+	read_from_memory:process(clock)--, inside_area_count_x, inside_area_count_y,cntxoffs,cntyoffs)			--cte z pameti a voli objekt v externim dekoderu
 	begin
 		if(rising_edge(clock)) then
-				--kresleni vnejsich sten
-			if((cntxoffs < 64 + dimm_x and cntyoffs < 64) or
+			if((cntxoffs < 64 + dimm_x and cntyoffs < 64) or		--kresleni vnejsich sten
 										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										((cntxoffs >=dimm_x and cntxoffs < 64 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										(cntxoffs < 64 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then
@@ -136,51 +171,175 @@ begin
 				mem_add <= (others => '1');
 				selected_object <= "101";
 				
-				--kresleni vnitrni oblasti
-			elsif((inside_area_count_x < 448) and (inside_area_count_y < 384)) then
-				--selected_object <= level_reg(row + column);
-				border_draw_en <= '0';
-				mem_add <= std_logic_vector(to_unsigned(row + column,6));
-				selected_object <= mem_data;
-				
-				--nekreslit nic
-			else
+			elsif((inside_area_count_x < 448) and (inside_area_count_y < 384)) then      --kresleni vnitrni oblasti
+				if((performing_move = '1') and ((inside_area_count_x >= mov_offs_x) and (inside_area_count_x < 64 + mov_offs_x) 			--prekresluje objekt hrace/sutru
+							and (inside_area_count_y >= mov_offs_y) and (inside_area_count_y < 64 + mov_offs_y))) then		--pokud probiha pohyb
+					if(start_pos(1 downto 0) = "11") then  --posouvany objekt je hrac
+						border_draw_en <= '0';
+						mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+						selected_object <= "111";
+					else					--posouvany objekt je kamen, koncova hodnota 10,01 nebo 00
+						border_draw_en <= '0';
+						mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+						selected_object <= "110";
+					end if;
+				else							--kresli podle toho, co je v pameti, neprobiha pohyb							
+					if((performing_move = '1') 		--prekresluje pocatecni pozici hybaneho objektu podlahou
+								and ((inside_area_count_x >= to_integer(unsigned(start_pos(7 downto 5)))*64) and (inside_area_count_x < 64 + to_integer(unsigned(start_pos(7 downto 5)))*64) 
+								and(inside_area_count_y >= to_integer(unsigned(start_pos(4 downto 2)))*64) and (inside_area_count_y < 64 + to_integer(unsigned(start_pos(4 downto 2)))*64) )) then
+						border_draw_en <= '0';
+						mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+						selected_object <= "000";
+					else
+						border_draw_en <= '0';
+						mem_add <= std_logic_vector(to_unsigned(row + column,6));
+						selected_object <= mem_data;
+					end if;
+				end if;				
+			else						--nekreslit nic
 				border_draw_en <= '0';
 				mem_add <= (others => '1');
-				selected_object <= "100";
+				selected_object <= "100";			--objekt niceho
 			end if;
 		end if;
 	end process;
 	
---	constant start_pos: std_logic_vector(7 downto 0) := "00101011"; 11-hrac, 00- sutr
---constant end_pos: std_logic_vector(7 downto 0) := "11001011";
---
---signal move: std_logic := '1';		--informace o tom, zda ma probihat pohyb
---signal ack: std_logic := '0';			--informace o vykonani pohybu
---signal mov_offs_x, mov_offs_y: natural 0 to 800 := 0;		--offset hybaneho objektu
---signal direction: std_logic;			--priznak smeru 1-doprava/nahoru, 0-doleva/dolu
+--stavovy automat ovladajici pohyb
 	
-	move_object: process(divided_clock, move, inside_area_count_x, inside_area_count_y)			--meni offset vykreslovaneho objektu
+	SYNC_PROC:process(divided_clock, next_state, reset)
 	begin
 		if(rising_edge(divided_clock)) then
-			if(move = '1') then
+			if(reset = '1') then
+				present_state <= LOAD;
+				ack <= '0';
+			else
+				present_state <= next_state;
+				ack <= ack_internal;
+			end if;
+		end if;
+	end process;
+	
+	OUTPUT_DECODE: process (present_state)
+   begin
+      if (present_state = LOAD) then
+         ack_internal <= '0';
+			performing_move <= '0';
+			mov_offs_x <= 0;
+			mov_offs_y <= 0;
+			
+		elsif (present_state = CHOOSE_MOVE) then
+			ack_internal <= '0';
+			performing_move <= '1';
+			mov_offs_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;  --pocatecni offsety
+			mov_offs_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
+			
+		elsif (present_state = MOVE_DOWN) then
+			ack_internal <= '0';
+			performing_move <= '1';
+			mov_offs_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
+			mov_offs_y <= mov_offs_y + 1;
+			
+		elsif (present_state = MOVE_UP) then
+			ack_internal <= '0';
+			performing_move <= '1';
+			mov_offs_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
+			mov_offs_y <= mov_offs_y - 1;
+			
+		elsif (present_state = MOVE_LEFT) then
+			ack_internal <= '0';
+			performing_move <= '1';
+			mov_offs_x <= mov_offs_x + 1;
+			mov_offs_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
+			
+		elsif (present_state = MOVE_RIGHT) then
+			ack_internal <= '0';
+			performing_move <= '1';
+			mov_offs_x <= mov_offs_x - 1;
+			mov_offs_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
+			
+		elsif (present_state = MOVE_DONE) then
+			ack_internal <= '1';
+			performing_move <= '1';
+			mov_offs_x <= 0;
+			mov_offs_y <= 0;
+		else
+			ack_internal <= '0';
+			performing_move <= '0';
+			mov_offs_x <= 0;
+			mov_offs_y <= 0;
+      end if;
+   end process;
+	
+	NEXT_STATE_DECODE: process(present_state,move, mov_offs_x, mov_offs_y)			--meni offset vykreslovaneho objektu
+	begin
+	
+		next_state <= present_state;
+		
+		case present_state is
+			when LOAD =>			
+				if(move = '1') then 
+					next_state <= CHOOSE_MOVE;
+				else 
+					next_state <= LOAD;
+				end if;
+				
+			when CHOOSE_MOVE =>				
 				if((start_pos(7 downto 5) xnor end_pos(7 downto 5)) = "111") then			--pokud se x-ove souradnice rovnaji, probiha VERTIKALNI pohyb
 					if((signed(end_pos(4 downto 2)) - signed(start_pos(4 downto 2))) > 0) then		--probiha pohyb DOLU
-						mov_offs_y <= mov_offs_y + 1;
-					else					--probiha pohyb NAHORU
-						mov_offs_y <= mov_offs_y - 1;
+						next_state <= MOVE_DOWN;
+					else 
+						next_state <= MOVE_UP;
 					end if;
-					
-				else					--v tomto pripade se x-ove souradnice nerovnaji, takze probiha HORIZONTALNI pohyb
+				else								--v tomto pripade se x-ove souradnice nerovnaji, takze probiha HORIZONTALNI pohyb
 					if((signed(end_pos(7 downto 5)) - signed(start_pos(7 downto 5))) > 0) then		--probiha pohyb DOPRAVA
-						mov_offs_x <= mov_offs_x + 1;
+						next_state <= MOVE_RIGHT;
 					else				--probiha pohyb DOLEVA
-						mov_offs_x <= mov_offs_x - 1;
+						next_state <= MOVE_LEFT;
 					end if;
 				end if;
-			end if;		
-		end if;		
+				
+			when MOVE_DOWN =>
+				if(mov_offs_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
+					next_state <= MOVE_DONE;
+				else 
+					next_state <= MOVE_DOWN;
+				end if;
+				
+			when MOVE_UP =>
+				if(mov_offs_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
+					next_state <= MOVE_DONE;
+				else 
+					next_state <= MOVE_UP;
+				end if;
+				
+			when MOVE_LEFT =>				
+				if(mov_offs_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then 
+					next_state <= MOVE_DONE;
+				else 
+					next_state <= MOVE_LEFT;
+				end if;
+				
+			when MOVE_RIGHT =>				
+				if(mov_offs_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then
+					next_state <= MOVE_DONE;
+				else 
+					next_state <= MOVE_RIGHT;
+				end if;
+				
+			when MOVE_DONE =>				
+				if(move = '0') then 
+					next_state <= LOAD;
+				else 
+					next_state <= MOVE_DONE;
+				end if;
+				
+			when others => 
+				next_state <= LOAD;
+				
+		end case;
 	end process;
+	
+---konec stavoveho automatu ovladajiciho pohyb
 	
 	--citace pixelu pro celou arenu
 	pixx_offs <= std_logic_vector(to_unsigned(cntxoffs,11));
