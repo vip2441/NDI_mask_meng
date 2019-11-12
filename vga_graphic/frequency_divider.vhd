@@ -22,7 +22,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity frequency_divider is
-		generic(modulo : natural := 0);		--deli cislem 2^(modulo + 1)
+		generic(modulo : natural := 14);		--deli cislem 2^(modulo + 1)
     Port ( clk_in : in  STD_LOGIC;
            clk_out_div : out  STD_LOGIC := '0');
 end frequency_divider;
