@@ -26,15 +26,21 @@ entity object_generator is
 				sel: in std_logic_vector(2 downto 0);
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
-           color : out  STD_LOGIC_vector(2 downto 0));
+			  
+			  --signaly pro pamet
+			  mem_read_enable: out std_logic;
+			  mem_add_x: out std_logic_vector(11 downto 0);
+			  mem_add_y: out std_logic_vector(2 downto 0)
+			  
+			  );
 end object_generator;
 
 architecture Behavioral of object_generator is
 
+
+
 signal cntx, cnty: natural range 0 to 1200 := 0;
 signal offsx, offsy : natural range 0 to 500 := 0;
-
-signal color: std_logic_vector(2 downto 0) := "000";
 
 begin
 
@@ -47,82 +53,26 @@ begin
 	process(clk,cntx, cnty, sel)
 	begin
 		if(rising_edge(clk)) then
-			if(sel = "101") then
-				color <= rom(((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64));
-			elsif(sel = "000") then
-				color <= rom(4096 + ((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64));
-			elsif(sel = "110") then
-				color <= rom(8192 + ((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64));
-			elsif(sel = "111") then
-				color <= rom(12288 + ((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64));
-			elsif(sel = "011") then
-				color <= rom(16384 + ((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64));
+			mem_read_enable <= '1';
+			mem_add_x <= std_logic_vector(to_unsigned((((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64)), 12));
+			
+			if(sel = "101") then			--STENA
+				mem_add_y <= "000";
+			elsif(sel = "000") then		--PODLAHA
+				mem_add_y <= "001";
+			elsif(sel = "110") then			--KAMEN
+				mem_add_y <= "010";
+			elsif(sel = "111") then			--HRAC
+				mem_add_y <= "011";
+			elsif(sel = "011") then			--JIDLO
+				mem_add_y <= "100";
 			else
-				color <= "000";
+				mem_read_enable <= '0';
+				mem_add_x <= (others => '0');
+				mem_add_y <= (others => '0');
 			end if;
 		end if;
-	end process;
-
---floor_object_generator: floor_object
---		port map(
---			pix_x => inside_pix_x,
---			pix_y => inside_pix_y,
---         enable => gen_floor_en,
---			clk => clk,
---         color => floor_pic
---		);
---			
---wall_object_generator: wall_object
---		port map(
---			pix_x => pixx_selected,
---			pix_y => pixy_selected,
---         enable => gen_wall_en,
---			clk => clk,
---         color => wall_pic
---		);
---		
---stone_object_generator: stone_obj
---		port map(
---			pix_x => inside_pix_x,
---			pix_y => inside_pix_y,
---         enable => gen_stone_en,
---			clk => clk,
---         color => stone_pic
---		);		
---		
---player_object_generator: player_obj
---		port map(
---			pix_x => inside_pix_x,
---			pix_y => inside_pix_y,
---         enable => gen_player_en,
---			clk => clk,
---         color => player_pic
---		);		
---		
---food_object_generator: food_obj
---		port map(
---			pix_x => inside_pix_x,
---			pix_y => inside_pix_y,
---         enable => gen_food_en,
---			clk => clk,
---         color => food_pic
---		);		
---						
---col_out_mux: color_output_mux
---		port map(
---			floor_obj => floor_pic, 
---			wall_obj => wall_pic, 
---			player_obj => player_pic, 
---			stone_obj => stone_pic, 
---			food_obj => food_pic,
---         floor_sel => gen_floor_en, 
---			wall_sel => gen_wall_en, 
---			player_sel => gen_player_en,
---			stone_sel => gen_stone_en,
---			food_sel => gen_food_en,
---			R => red,
---			G => green,
---			B => blue);
+	end process;	
 
 end Behavioral;
 

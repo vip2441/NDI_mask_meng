@@ -44,7 +44,7 @@ begin
 
 memory_read:process(clock)
 	begin
-		if(rising_edge(clock)) then
+		if(falling_edge(clock)) then
 			data_out <= rom(to_integer(unsigned(address_x)));
 		end if;
 	end process;

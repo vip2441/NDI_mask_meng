@@ -1327,7 +1327,7 @@ begin
 
 	memory_read:process(clock)
 	begin
-		if(rising_edge(clock)) then
+		if(falling_edge(clock)) then
 			if(read_enable = '1') then
 				data_out <= rom(to_integer(unsigned(y_x)));
 			end if;

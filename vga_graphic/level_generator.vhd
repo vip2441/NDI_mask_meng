@@ -27,8 +27,11 @@ entity level_generator is
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
            clock: in  STD_LOGIC;
-			  border_draw_en : out  STD_LOGIC;
+			  border_draw_en, graphics_enable : out  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
+			  
+			  --offsety zvolenych objektu
+			  obj_offs_x, obj_offs_y: out std_logic_vector(8 downto 0);
 			  --experimentalni signaly
 			  move, reset : in  STD_LOGIC;
 			  ack: out std_logic
@@ -37,13 +40,13 @@ end level_generator;
 
 architecture Behavioral of level_generator is
 
---component frequency_divider is
---		generic(modulo : natural := 14);		--deli cislem 2^(modulo + 1)
---    Port ( clk_in : in  STD_LOGIC;
---           clk_out_div : out  STD_LOGIC := '0');
---end component;
---
---signal divided_clock: std_logic := '0';
+component frequency_divider is
+		generic(modulo : natural := 15);		--deli cislem 2^(modulo + 1)
+    Port ( clk_in : in  STD_LOGIC;
+           clk_out_div : out  STD_LOGIC := '0');
+end component;
+
+signal divided_clock: std_logic := '0';
 
 --signal game_on: std_logic;
 
@@ -59,7 +62,9 @@ constant start_pos: std_logic_vector(7 downto 0) := "00101011";
 constant end_pos: std_logic_vector(7 downto 0) := "11001011";
 
 --signaly pro pohyb, vykresleni objektu v dane vzdalenosti
-signal mov_offs_x, mov_offs_y: natural range 0 to 800 := 0;		--offset hybaneho objektu
+signal mov_offs_x, mov_offs_y: natural range 0 to 385 := 0;		--offset hybaneho objektu
+signal count_x, count_y: natural range 0 to 385 := 0;
+
 
 --rozmery hraci plochy		
 constant dimm_x: natural range 0 to 800 := 512;				
@@ -74,16 +79,17 @@ signal row, column: natural range 0 to 35:= 0;
 
 --stavovy automat pohybu
 type state_type is(LOAD,CHOOSE_MOVE, MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, MOVE_DONE);
-signal present_state, next_state: state_type;
-signal performing_move, ack_internal: std_logic := '0';
+signal state: state_type;
+signal performing_move: std_logic := '0';
 
 begin
 
---	divider: frequency_divider
---		port map(
---			clk_in => clock,
---			clk_out_div => divided_clock
---		);
+divider: frequency_divider
+	port map(
+		clk_in => clock,
+		clk_out_div => divided_clock
+		
+	);
 	
 	--pocitadla radku a sloupcu cele obrazovky
 	cntx <= to_integer(unsigned(pix_x));
@@ -133,37 +139,23 @@ begin
 			end if;
 	end process;
 	
---	arena_draw_fsm:process(present_state)
---	begin
---		if (present_state = DRAWING_BORDERS) then				--kresli hranice
---			border_draw_en <= '1';
---			mem_add <= (others => '1');
---			selected_object <= "101";
---			
---		elsif(present_state = DRAWING_ARENA) then				--kresli arenu, kdyz neprobiha pohyb
---			border_draw_en <= '0';
---			mem_add <= std_logic_vector(to_unsigned(row + column,6));
---			selected_object <= mem_data;
---			
---		elsif(present_state = FLOOR_INSTEAD) then
---			border_draw_en <= '0';
---			mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
---			selected_object <= "000";			
---		end if;		
---	end process;
-	
 	read_from_memory:process(clock)
-	begin
+	begin		
 		if(rising_edge(clock)) then
+			obj_offs_x <= (others => '0');
+			obj_offs_y <= (others => '0');
+			
 			if((cntxoffs < 64 + dimm_x and cntyoffs < 64) or		--kresleni vnejsich sten
 										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										((cntxoffs >=dimm_x and cntxoffs < 64 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										(cntxoffs < 64 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then
+				graphics_enable <= '1';
 				border_draw_en <= '1';
 				mem_add <= (others => '1');
 				selected_object <= "101";
 				
 			elsif((inside_area_count_x < 448) and (inside_area_count_y < 384)) then      --kresleni vnitrni oblasti
+				graphics_enable <= '1';
 				if(performing_move = '1') then			--pohyb se vykonava
 					if((inside_area_count_x >= to_integer(unsigned(start_pos(7 downto 5)))*64) and (inside_area_count_x < 64 + to_integer(unsigned(start_pos(7 downto 5)))*64) 
 								and(inside_area_count_y >= to_integer(unsigned(start_pos(4 downto 2)))*64) and (inside_area_count_y < 64 + to_integer(unsigned(start_pos(4 downto 2)))*64) )then					--kdyz se nachazi na pocatecni pozici objektu
@@ -173,6 +165,10 @@ begin
 						
 					elsif((inside_area_count_x >= mov_offs_x) and (inside_area_count_x < 64 + mov_offs_x) 
 							and (inside_area_count_y >= mov_offs_y) and (inside_area_count_y < 64 + mov_offs_y)) then				--kdyz se nachazi na soucasne pozici objektu
+							
+						obj_offs_x <= std_logic_vector(to_unsigned(mov_offs_x, 9));
+						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 9));
+							
 						if(start_pos(1 downto 0) = "11") then  --posouvany objekt je hrac
 							border_draw_en <= '0';
 							mem_add <= (others => '1');
@@ -193,6 +189,7 @@ begin
 					selected_object <= mem_data;
 				end if;				
 			else						--nekreslit nic
+				graphics_enable <= '0';
 				border_draw_en <= '0';
 				mem_add <= (others => '1');
 				selected_object <= "100";			--objekt niceho
@@ -200,255 +197,120 @@ begin
 		end if;		
 	end process;
 	
+	process(clock)
+	begin
+		if(rising_edge(clock)) then
+			mov_offs_x <= count_x;
+			mov_offs_y <= count_y;
+		end if;		
+	end process;
 	
-	GRAND_FSM:process(clock)
+	
+	GRAND_FSM:process(divided_clock, reset)
 	begin
 		if(reset = '1') then
-			next_state <= LOAD;
+			state <= LOAD;
 			ack <= '0';
-		elsif(rising_edge(clock)) then
-			case next_state is				
+		elsif(rising_edge(divided_clock)) then
+			count_x <= to_integer(unsigned(start_pos(7 downto 5)))*64; 	 --pocatecni offsety
+			count_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
+			
+			case state is				
 				when LOAD =>	
-					ack_internal <= '0';
+					ack <= '0';
 					performing_move <= '0';
-					mov_offs_x <= 0;
-					mov_offs_y <= 0;
+					count_x <= 0;
+					count_y <= 0;
 					
 					if(move = '1') then 
-						next_state <= CHOOSE_MOVE;
+						state <= CHOOSE_MOVE;
 					else 
-						next_state <= LOAD;
+						state <= LOAD;
 					end if;
 				
 				when CHOOSE_MOVE =>	
-					ack_internal <= '0';
+					ack <= '0';
 					performing_move <= '0';
-					mov_offs_x <= to_integer(unsigned(start_pos(7 downto 5)))*64; 	 --pocatecni offsety
-					mov_offs_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
 				
 					if((start_pos(7 downto 5) xnor end_pos(7 downto 5)) = "111") then			--pokud se x-ove souradnice rovnaji, probiha VERTIKALNI pohyb
 						if((signed(end_pos(4 downto 2)) - signed(start_pos(4 downto 2))) > 0) then		--probiha pohyb DOLU
-							next_state <= MOVE_DOWN;
+							state <= MOVE_DOWN;
 						else 
-							next_state <= MOVE_UP;
+							state <= MOVE_UP;
 						end if;
 					else								--v tomto pripade se x-ove souradnice nerovnaji, takze probiha HORIZONTALNI pohyb
 						if((signed(end_pos(7 downto 5)) - signed(start_pos(7 downto 5))) > 0) then		--probiha pohyb DOPRAVA
-							next_state <= MOVE_RIGHT;
+							state <= MOVE_RIGHT;
 						else				--probiha pohyb DOLEVA
-							next_state <= MOVE_LEFT;
+							state <= MOVE_LEFT;
 						end if;
 					end if;
 				
 				when MOVE_DOWN =>
-					ack_internal <= '0';
+					ack <= '0';
 					performing_move <= '1';
-					mov_offs_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
-					mov_offs_y <= mov_offs_y + 1;
+					count_y <= mov_offs_y + 1;
 				
-					if(mov_offs_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
-						next_state <= MOVE_DONE;
+					if(count_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
+						state <= MOVE_DONE;
 					else 
-						next_state <= MOVE_DOWN;
+						state <= MOVE_DOWN;
 					end if;
 				
 				when MOVE_UP =>
-					ack_internal <= '0';
+					ack <= '0';
 					performing_move <= '1';
-					mov_offs_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
-					mov_offs_y <= mov_offs_y - 1;
+					count_y <= mov_offs_y - 1;
 					
-					if(mov_offs_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
-						next_state <= MOVE_DONE;
+					if(count_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
+						state <= MOVE_DONE;
 					else 
-						next_state <= MOVE_UP;
+						state <= MOVE_UP;
 					end if;
 				
 				when MOVE_LEFT =>	
-					ack_internal <= '0';
+					ack <= '0';
 					performing_move <= '1';
-					mov_offs_x <= mov_offs_x + 1;
-					mov_offs_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
+					count_x <= mov_offs_x + 1;
 						
-					if(mov_offs_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then 
-						next_state <= MOVE_DONE;
+					if(count_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then 
+						state <= MOVE_DONE;
 					else 
-						next_state <= MOVE_LEFT;
+						state <= MOVE_LEFT;
 					end if;
 				
 				when MOVE_RIGHT =>	
-					ack_internal <= '0';
+					ack <= '0';
 					performing_move <= '1';
-					mov_offs_x <= mov_offs_x - 1;
-					mov_offs_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
+					count_x <= mov_offs_x - 1;
 					
-					if(mov_offs_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then
-						next_state <= MOVE_DONE;
+					if(count_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then
+						state <= MOVE_DONE;
 					else 
-						next_state <= MOVE_RIGHT;
+						state <= MOVE_RIGHT;
 					end if;
 				
 				when MOVE_DONE =>	
-					ack_internal <= '1';
+					ack <= '1';
 					performing_move <= '1';
-					mov_offs_x <= to_integer(unsigned(end_pos(7 downto 5)))*64;
-					mov_offs_y <= to_integer(unsigned(end_pos(4 downto 2)))*64;
+					count_x <= to_integer(unsigned(end_pos(7 downto 5)))*64;
+					count_y <= to_integer(unsigned(end_pos(4 downto 2)))*64;
 			
 					if(move = '0') then 
-						next_state <= LOAD;
+						state <= LOAD;
 					else 
-						next_state <= MOVE_DONE;
+						state <= MOVE_DONE;
 					end if;
 				
 				when others => 
-					ack_internal <= '0';
+					ack <= '0';
 					performing_move <= '0';
-					mov_offs_x<= 0;
-					mov_offs_y <= 0;
-					next_state <= LOAD;				
+					--mov_offs_x<= 0;
+					--mov_offs_y <= 0;
+					state <= LOAD;				
 			end case;
 		end if;
 	end process;
-
---stavovy automat ovladajici pohyb
---	
---	SYNC_PROC:process(clock, next_state, reset)
---	begin
---		if(rising_edge(clock)) then
---			if(reset = '1') then
---				present_state <= LOAD;
---				ack <= '0';
---			else
---				present_state <= next_state;
---				ack <= ack_internal;
---				mov_offs_x <= 	count_obj_x;
---				mov_offs_y <= count_obj_y;
---			end if;
---		end if;
---	end process;
---	
---	
---	
---	OUTPUT_DECODE: process(present_state, mov_offs_x, mov_offs_y)
---   begin
---      if (present_state = LOAD) then
---         ack_internal <= '0';
---			performing_move <= '0';
---			count_obj_x <= 0;
---			count_obj_y <= 0;
---			
---		elsif (present_state = CHOOSE_MOVE) then
---			ack_internal <= '0';
---			performing_move <= '0';
---			count_obj_x <= to_integer(unsigned(start_pos(7 downto 5)))*64; 	 --pocatecni offsety
---			count_obj_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
---			
---		elsif (present_state = MOVE_DOWN) then
---			ack_internal <= '0';
---			performing_move <= '1';
---			count_obj_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
---			count_obj_y <= mov_offs_y + 1;
---			
---		elsif (present_state = MOVE_UP) then
---			ack_internal <= '0';
---			performing_move <= '1';
---			count_obj_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
---			count_obj_y <= mov_offs_y - 1;
---			
---		elsif (present_state = MOVE_LEFT) then
---			ack_internal <= '0';
---			performing_move <= '1';
---			count_obj_x <= mov_offs_x + 1;
---			count_obj_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
---			
---		elsif (present_state = MOVE_RIGHT) then
---			ack_internal <= '0';
---			performing_move <= '1';
---			count_obj_x <= mov_offs_x - 1;
---			count_obj_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
---			
---		elsif (present_state = MOVE_DONE) then
---			ack_internal <= '1';
---			performing_move <= '1';
---			count_obj_x <= to_integer(unsigned(end_pos(7 downto 5)))*64;
---			count_obj_y <= to_integer(unsigned(end_pos(4 downto 2)))*64;
---		else
---			ack_internal <= '0';
---			performing_move <= '0';
---			count_obj_x<= 0;
---			count_obj_y <= 0;
---      end if;
---   end process;
---	
---	NEXT_STATE_DECODE: process(present_state,move, mov_offs_x, mov_offs_y)			--meni offset vykreslovaneho objektu
---	begin
---	
---		next_state <= present_state;
---		
---		case present_state is
---			when LOAD =>			
---				if(move = '1') then 
---					next_state <= CHOOSE_MOVE;
---				else 
---					next_state <= LOAD;
---				end if;
---				
---			when CHOOSE_MOVE =>				
---				if((start_pos(7 downto 5) xnor end_pos(7 downto 5)) = "111") then			--pokud se x-ove souradnice rovnaji, probiha VERTIKALNI pohyb
---					if((signed(end_pos(4 downto 2)) - signed(start_pos(4 downto 2))) > 0) then		--probiha pohyb DOLU
---						next_state <= MOVE_DOWN;
---					else 
---						next_state <= MOVE_UP;
---					end if;
---				else								--v tomto pripade se x-ove souradnice nerovnaji, takze probiha HORIZONTALNI pohyb
---					if((signed(end_pos(7 downto 5)) - signed(start_pos(7 downto 5))) > 0) then		--probiha pohyb DOPRAVA
---						next_state <= MOVE_RIGHT;
---					else				--probiha pohyb DOLEVA
---						next_state <= MOVE_LEFT;
---					end if;
---				end if;
---				
---			when MOVE_DOWN =>
---				if(mov_offs_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
---					next_state <= MOVE_DONE;
---				else 
---					next_state <= MOVE_DOWN;
---				end if;
---				
---			when MOVE_UP =>
---				if(mov_offs_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
---					next_state <= MOVE_DONE;
---				else 
---					next_state <= MOVE_UP;
---				end if;
---				
---			when MOVE_LEFT =>				
---				if(mov_offs_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then 
---					next_state <= MOVE_DONE;
---				else 
---					next_state <= MOVE_LEFT;
---				end if;
---				
---			when MOVE_RIGHT =>				
---				if(mov_offs_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then
---					next_state <= MOVE_DONE;
---				else 
---					next_state <= MOVE_RIGHT;
---				end if;
---				
---    		when MOVE_DONE =>				
---				if(move = '0') then 
---					next_state <= LOAD;
---				else 
---					next_state <= MOVE_DONE;
---				end if;
---				
---			when others => 
---				next_state <= LOAD;
---				
---		end case;
---	end process;
----konec stavoveho automatu ovladajiciho pohyb
 	
 	--citace pixelu pro celou arenu
 	pixx_offs <= std_logic_vector(to_unsigned(cntxoffs,11));

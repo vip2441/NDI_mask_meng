@@ -1,0 +1,33 @@
+    ____  ____
+   /   /\/   /
+  /___/  \  /    VENDOR      : Xilinx Inc.
+  \   \   \/     VERSION     : 14.7 (P.20131013)
+   \   \         APPLICATION : C:\Xilinx\14.7\ISE_DS\ISE\bin\nt64\unwrapped\compxlib.exe
+   /   /         CONTENTS    : Compilation Log
+  /___/   /\     FILENAME    : compxlib.log
+  \   \  /  \    
+   \___\/\___\
+
+Release 14.7 - C:\Xilinx\14.7\ISE_DS\ISE\bin\nt64\unwrapped\compxlib.exe 14.7 (nt64)
+Copyright (c) 1995-2013 Xilinx, Inc.  All rights reserved.
+
+Processing command line ...
+Library Source Paths => 'C:/Xilinx/14.7/ISE_DS/ISE'
+Current Working Directory => 'C:\SharedVmchine\NDI_mask_meng\vga_graphic'
+Compilation Mode = FAST
+Execute Mode = ON
+Scheduling library installation & compilation for architectures: spartan3
+
+Scheduling library installation & compilation for libraries: simprim unisim xilinxcorelib edk
+
+Signature:-
+------------------------------------------------------------------------------
+C:\Xilinx\14.7\ISE_DS\ISE\bin\nt64\unwrapped\compxlib.exe -s mti_pe -l vhdl -p C:/Modeltech_pe_edu_10.4a/win32pe_edu -arch spartan3 -lib unisim -lib simprim -lib xilinxcorelib -lib edk -exclude_superseded -intstyle ise 
+------------------------------------------------------------------------------
+
+Setting up the simulator 'mti_pe' for compilation ...
+The executable path is set to 'C:/Modeltech_pe_edu_10.4a/win32pe_edu' ...
+Setting up the source libraries for simulator 'mti_pe' ...
+Retrieving the .pao files for EDK library ...
+Building the library hierarchies from the .pao files for EDK library ...
+Assigning the netlist files to the hierarchies for EDK library ...
