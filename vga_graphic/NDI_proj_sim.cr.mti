@@ -1,0 +1,9 @@
+C:/SharedVmchine/NDI_mask_meng/vga_graphic/divider_testbench.vhd {1 {vcom -work work -2002 -explicit -stats=none C:/SharedVmchine/NDI_mask_meng/vga_graphic/divider_testbench.vhd
+Model Technology ModelSim PE Student Edition vcom 10.4a Compiler 2015.03 Apr  7 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Compiling entity divider_testbench
+-- Compiling architecture behavior of divider_testbench
+
+} {} {}}

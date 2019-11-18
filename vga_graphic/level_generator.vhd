@@ -32,6 +32,8 @@ entity level_generator is
 			  
 			  --offsety zvolenych objektu
 			  obj_offs_x, obj_offs_y: out std_logic_vector(8 downto 0);
+			  --signaly pohybu
+			  start_pos, end_pos: in std_logic_vector(7 downto 0);
 			  --experimentalni signaly
 			  move, reset : in  STD_LOGIC;
 			  ack: out std_logic
@@ -54,12 +56,6 @@ signal divided_clock: std_logic := '0';
 signal cntx, cnty, 					--citace cele obrazovky
 		cntxoffs, cntyoffs, 					--citace hranic hraci plochy
 		inside_area_count_x, inside_area_count_y: natural range 0 to 1200 := 0;				--citace vnitrni oblasti hraci plochy
---signal count_obj_x, count_obj_y: natural range 0 to 500 := 0;
-
-	
---experimentalni signaly pro pohyb	
-constant start_pos: std_logic_vector(7 downto 0) := "00101011"; 
-constant end_pos: std_logic_vector(7 downto 0) := "11001011";
 
 --signaly pro pohyb, vykresleni objektu v dane vzdalenosti
 signal mov_offs_x, mov_offs_y: natural range 0 to 385 := 0;		--offset hybaneho objektu
@@ -144,8 +140,13 @@ divider: frequency_divider
 		if(rising_edge(clock)) then
 			obj_offs_x <= (others => '0');
 			obj_offs_y <= (others => '0');
-			
-			if((cntxoffs < 64 + dimm_x and cntyoffs < 64) or		--kresleni vnejsich sten
+			if((cntx = 0 and cnty = 0) or (cntx = 799 and cnty = 0) or (cntx = 0 and cnty = 599) or (cntx = 799 and cnty = 599))then
+				graphics_enable <= '1';
+				border_draw_en <= '0';
+				mem_add <= (others => '1');
+				selected_object <= "001";
+				
+			elsif((cntxoffs < 64 + dimm_x and cntyoffs < 64) or		--kresleni vnejsich sten
 										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										((cntxoffs >=dimm_x and cntxoffs < 64 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										(cntxoffs < 64 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then
@@ -169,7 +170,7 @@ divider: frequency_divider
 						obj_offs_x <= std_logic_vector(to_unsigned(mov_offs_x, 9));
 						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 9));
 							
-						if(start_pos(1 downto 0) = "11") then  --posouvany objekt je hrac
+						if(start_pos(1 downto 0) = "11" or end_pos(1 downto 0) = "11") then  --posouvany objekt je hrac
 							border_draw_en <= '0';
 							mem_add <= (others => '1');
 							selected_object <= "111";
@@ -253,8 +254,10 @@ divider: frequency_divider
 				
 					if(count_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
 						state <= MOVE_DONE;
-					else 
+					elsif(count_y < to_integer(unsigned(end_pos(4 downto 2)))*64) then
 						state <= MOVE_DOWN;
+					else 
+						state <= LOAD;
 					end if;
 				
 				when MOVE_UP =>
@@ -264,8 +267,10 @@ divider: frequency_divider
 					
 					if(count_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
 						state <= MOVE_DONE;
-					else 
+					elsif(count_y > to_integer(unsigned(end_pos(7 downto 5)))*64) then
 						state <= MOVE_UP;
+					else 
+						state <= LOAD;
 					end if;
 				
 				when MOVE_LEFT =>	
@@ -275,8 +280,10 @@ divider: frequency_divider
 						
 					if(count_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then 
 						state <= MOVE_DONE;
-					else 
+					elsif(count_x < to_integer(unsigned(end_pos(7 downto 5)))*64) then
 						state <= MOVE_LEFT;
+					else 
+						state <= LOAD;
 					end if;
 				
 				when MOVE_RIGHT =>	
@@ -286,8 +293,10 @@ divider: frequency_divider
 					
 					if(count_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then
 						state <= MOVE_DONE;
-					else 
+					elsif(count_x > to_integer(unsigned(end_pos(7 downto 5)))*64) then
 						state <= MOVE_RIGHT;
+					else 
+						state <= LOAD;
 					end if;
 				
 				when MOVE_DONE =>	
@@ -305,8 +314,6 @@ divider: frequency_divider
 				when others => 
 					ack <= '0';
 					performing_move <= '0';
-					--mov_offs_x<= 0;
-					--mov_offs_y <= 0;
 					state <= LOAD;				
 			end case;
 		end if;

@@ -26,6 +26,7 @@ entity object_generator is
 				sel: in std_logic_vector(2 downto 0);
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
+			  white_dots_en: out std_logic;
 			  
 			  --signaly pro pamet
 			  mem_read_enable: out std_logic;
@@ -55,6 +56,7 @@ begin
 		if(rising_edge(clk)) then
 			mem_read_enable <= '1';
 			mem_add_x <= std_logic_vector(to_unsigned((((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64)), 12));
+			white_dots_en <= '0';
 			
 			if(sel = "101") then			--STENA
 				mem_add_y <= "000";
@@ -66,8 +68,12 @@ begin
 				mem_add_y <= "011";
 			elsif(sel = "011") then			--JIDLO
 				mem_add_y <= "100";
-			else
+			elsif(sel = "001") then				--bile tecky v rozich
 				mem_read_enable <= '0';
+				mem_add_y <= "000";
+				white_dots_en <= '1';
+			else
+				mem_read_enable <= '0';			-- kombinace 100
 				mem_add_x <= (others => '0');
 				mem_add_y <= (others => '0');
 			end if;

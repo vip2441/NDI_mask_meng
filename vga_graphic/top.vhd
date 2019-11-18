@@ -33,12 +33,6 @@ end top;
 
 architecture Behavioral of top is
 
---component mux2 is
---    Port ( a,b : in  STD_LOGIC_VECTOR (10 downto 0);
---           y : out  STD_LOGIC_VECTOR (10 downto 0);
---           sel : in  STD_LOGIC);
---end component;b
-
 component vga_sync is
     Port ( clk : in  STD_LOGIC;
            h_sync, v_sync,video_on, frame_tick : out  STD_LOGIC;
@@ -54,6 +48,8 @@ component level_generator is
 			  border_draw_en, graphics_enable : out  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
+			  start_pos, end_pos: std_logic_vector(7 downto 0);
+			  
 			  obj_offs_x, obj_offs_y: out std_logic_vector(8 downto 0);
 		--experimentarni signaly
 			  move, reset : in  STD_LOGIC;
@@ -66,6 +62,7 @@ component object_generator is
 			  sel: in std_logic_vector(2 downto 0);
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
+			  white_dots_en: out std_logic;
 			  
 			  --signaly pro pamet
 			  mem_read_enable: out std_logic;
@@ -87,17 +84,10 @@ component levels_rom is
            data_out : out  STD_LOGIC_VECTOR (2 downto 0));
 end component;
 
-component color_output_mux is
-    Port ( graphic_object : in  STD_LOGIC_VECTOR (2 downto 0);
-           graphic_object_sel : in  STD_LOGIC;
-			  R,G,B: out std_logic);
-end component;
-
-
 --vnitrni signaly pro synchronizaci grafiky
 signal vid_on: std_logic := '0';
 signal pxx, pxy: std_logic_vector(10 downto 0) := (others => '0');
-signal red, green, blue: std_logic;
+signal color: std_logic_vector(2 downto 0);
 
 --signaly pro ram levelu
 signal lvl_mem_addx: std_logic_vector(5 downto 0) := (others => '0');
@@ -120,8 +110,16 @@ signal border_draw_en:std_logic;
 signal pixx_arena, pixy_arena, inside_pix_x, inside_pix_y, pixx_selected, pixy_selected: std_logic_vector(10 downto 0) := (others => '0');
 
 --signaly vystupniho multiplexeru
---signal graphic_object: std_logic_vector(2 downto 0);
-signal graphics_enable: std_logic;
+signal graphics_enable, white_dots_en: std_logic;
+
+--signaly zabyvajici se pohybem
+signal start_pos_reg_in: std_logic_vector(7 downto 0) := "00101011";
+signal end_pos_reg_in : std_logic_vector (7 downto 0) := "11001011";
+--signal start_pos_reg_out, end_pos_reg_out: std_logic_vector(7 downto 0);
+--signal reg_ce: std_logic := '0';
+
+--signaly zpozdovaaci linky
+signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
 
 begin
 
@@ -129,9 +127,9 @@ reg_color: process(clk) is			--vystupni registr barev
 begin
 	if(rising_edge(clk)) then
 		if(vid_on ='1') then
-			R <= red;
-			G <= green;
-			B <= blue;
+			R <= color(2);
+			G <= color(1);
+			B <= color(0);
 		else
 			R <= '0';
 			G <= '0';
@@ -140,6 +138,17 @@ begin
 	end if;
 end process;
 
+process(clk)
+begin
+	if(rising_edge(clk)) then
+		pixx_1 <= pixx_selected;
+		pixx_2 <= pixx_1;
+		pixy_1 <= pixy_selected;
+		pixy_2 <= pixy_1;
+	end if;
+end process;
+
+--multiplexery citacu radku a sloupcu obrazu
 with border_draw_en select
 pixx_selected <= pixx_arena when '1',
 						inside_pix_x when '0',
@@ -149,6 +158,21 @@ with border_draw_en select
 pixy_selected <= pixy_arena when '1',
 						inside_pix_y when '0',
 						(others => '0') when others;
+						
+--vystupni multiplexer grafickych objektu
+color <= "111" when white_dots_en = '1' else
+			graphic_mem_data when ((graphics_enable = '1') and (white_dots_en = '0')) else
+			"000";
+						
+--	move_register: process(clk)
+--		begin
+--			if(rising_edge(clk)) then
+--				if(reg_ce = '1') then
+--					start_pos_reg_out <= start_pos_reg_in;
+--					end_pos_reg_out <= end_pos_reg_in;
+--				end if;
+--			end if;
+--		end process;
 			
 synchronizer: vga_sync
 		port map(
@@ -173,8 +197,10 @@ lvl_load_generator: level_generator
         clock => clk,
 		  graphics_enable => graphics_enable,
 		  move => move,
-		  reset => reset,
+		  reset => reset,					--reset automatu zabyvajicim se pohybem
 		  ack => ack,
+		  start_pos => start_pos_reg_in,
+		  end_pos => end_pos_reg_in,
 		  obj_offs_x => gr_offs_x, 
 		  obj_offs_y => gr_offs_y,
 		  border_draw_en => border_draw_en,
@@ -185,10 +211,11 @@ graphics_generator:object_generator
 		port map(
 			clk => clk,
 			sel => selected_object,
-         pixx => pixx_selected,
-			pixy => pixy_selected,
+         pixx => pixx_2,
+			pixy => pixy_2,
          offset_x => gr_offs_x,
-			offset_y => gr_offs_y,			 
+			offset_y => gr_offs_y,	
+			white_dots_en => white_dots_en,
 			mem_read_enable => graphic_mem_re,
 			mem_add_x => graphic_mem_addx,
 			mem_add_y => graphic_mem_addy
@@ -209,16 +236,6 @@ sprite_memory: graphic_rom
 			address_y => graphic_mem_addy,
          data_out => graphic_mem_data
 		);
-		
-col_out_mux: color_output_mux
-		port map(
-			graphic_object => graphic_mem_data,
-			graphic_object_sel => graphics_enable,
-			R => red,
-			G => green,
-			B => blue
-		);
-
 
 end Behavioral;
 
