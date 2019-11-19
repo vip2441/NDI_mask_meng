@@ -1,22 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    23:41:55 10/16/2019 
--- Design Name: 
--- Module Name:    top - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
-----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -33,14 +14,14 @@ end top;
 
 architecture Behavioral of top is
 
-component vga_sync is
-    Port ( clk : in  STD_LOGIC;
+	component vga_sync is
+		Port ( clk : in  STD_LOGIC;
            h_sync, v_sync,video_on, frame_tick : out  STD_LOGIC;
            pixel_x, pixel_y : out  STD_LOGIC_VECTOR (10 downto 0));
-end component;
+	end component;
 
-component level_generator is
-    Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
+	component level_generator is
+		Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
 			  pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
@@ -55,10 +36,10 @@ component level_generator is
 			  move, reset : in  STD_LOGIC;
 			  ack: out std_logic
 			  );
-end component;
+	end component;
 
-component object_generator is
-    Port ( clk: std_logic;
+	component object_generator is
+		Port ( clk: std_logic;
 			  sel: in std_logic_vector(2 downto 0);
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
@@ -68,103 +49,103 @@ component object_generator is
 			  mem_read_enable: out std_logic;
 			  mem_add_x: out std_logic_vector(11 downto 0);
 			  mem_add_y: out std_logic_vector(2 downto 0)
-		);
-end component;
+			);
+	end component;
 
-component graphic_rom is
-    Port ( clock, read_enable : in  STD_LOGIC;
+	component graphic_rom is
+		Port ( clock, read_enable : in  STD_LOGIC;
            address_x: in  STD_LOGIC_VECTOR (11 downto 0);
 			  address_y: in  STD_LOGIC_VECTOR (2 downto 0);
            data_out : out  STD_LOGIC_VECTOR (2 downto 0));
-end component;
+	end component;
 
-component levels_rom is
-    Port ( clock: in  STD_LOGIC;
+	component levels_rom is
+		Port ( clock: in  STD_LOGIC;
            address_x : in  STD_LOGIC_VECTOR (5 downto 0);
            data_out : out  STD_LOGIC_VECTOR (2 downto 0));
-end component;
+	end component;
 
---vnitrni signaly pro synchronizaci grafiky
-signal vid_on: std_logic := '0';
-signal pxx, pxy: std_logic_vector(10 downto 0) := (others => '0');
-signal color: std_logic_vector(2 downto 0);
+	--vnitrni signaly pro synchronizaci grafiky
+	signal vid_on: std_logic := '0';
+	signal pxx, pxy: std_logic_vector(10 downto 0) := (others => '0');
+	signal color: std_logic_vector(2 downto 0);
 
---signaly pro ram levelu
-signal lvl_mem_addx: std_logic_vector(5 downto 0) := (others => '0');
-signal lvl_mem_data: std_logic_vector(2 downto 0) := (others => '0');
+	--signaly pro ram levelu
+	signal lvl_mem_addx: std_logic_vector(5 downto 0) := (others => '0');
+	signal lvl_mem_data: std_logic_vector(2 downto 0) := (others => '0');
 
---signaly pro grafickou pamet
-signal graphic_mem_addx: std_logic_vector(11 downto 0) := (others => '0');
-signal graphic_mem_addy: std_logic_vector(2 downto 0) := (others => '0');
-signal graphic_mem_re: std_logic;
-signal graphic_mem_data: std_logic_vector(2 downto 0);
+	--signaly pro grafickou pamet
+	signal graphic_mem_addx: std_logic_vector(11 downto 0) := (others => '0');
+	signal graphic_mem_addy: std_logic_vector(2 downto 0) := (others => '0');
+	signal graphic_mem_re: std_logic;
+	signal graphic_mem_data: std_logic_vector(2 downto 0);
 
---offsety grafickych obejktu
-signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
+	--offsety grafickych obejktu
+	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
 
---signaly pro rizeni generatoru objektu
-signal selected_object:std_logic_vector(2 downto 0);
-signal border_draw_en:std_logic;
+	--signaly pro rizeni generatoru objektu
+	signal selected_object:std_logic_vector(2 downto 0);
+	signal border_draw_en:std_logic;
 
---signaly pixelu s offsetem
-signal pixx_arena, pixy_arena, inside_pix_x, inside_pix_y, pixx_selected, pixy_selected: std_logic_vector(10 downto 0) := (others => '0');
+	--signaly pixelu s offsetem
+	signal pixx_arena, pixy_arena, inside_pix_x, inside_pix_y, pixx_selected, pixy_selected: std_logic_vector(10 downto 0) := (others => '0');
 
---signaly vystupniho multiplexeru
-signal graphics_enable, white_dots_en: std_logic;
+	--signaly vystupniho multiplexeru
+	signal graphics_enable, white_dots_en: std_logic;
 
---signaly zabyvajici se pohybem
-signal start_pos_reg_in: std_logic_vector(7 downto 0) := "00101011";
-signal end_pos_reg_in : std_logic_vector (7 downto 0) := "11001011";
---signal start_pos_reg_out, end_pos_reg_out: std_logic_vector(7 downto 0);
---signal reg_ce: std_logic := '0';
+	--signaly zabyvajici se pohybem
+	signal start_pos_reg_in: std_logic_vector(7 downto 0) := "10001011";
+	signal end_pos_reg_in : std_logic_vector (7 downto 0) := "10010011";
+	--signal start_pos_reg_out, end_pos_reg_out: std_logic_vector(7 downto 0);
+	--signal reg_ce: std_logic := '0';
 
---signaly zpozdovaaci linky
-signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
+	--signaly zpozdovaaci linky
+	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
 
 begin
 
-reg_color: process(clk) is			--vystupni registr barev
-begin
-	if(rising_edge(clk)) then
-		if(vid_on ='1') then
-			R <= color(2);
-			G <= color(1);
-			B <= color(0);
-		else
-			R <= '0';
-			G <= '0';
-			B <= '0';
+	reg_color: process(clk) is			--vystupni registr barev
+	begin
+		if(rising_edge(clk)) then
+			if(vid_on ='1') then
+				R <= color(2);
+				G <= color(1);
+				B <= color(0);
+			else
+				R <= '0';
+				G <= '0';
+				B <= '0';
+			end if;
 		end if;
-	end if;
-end process;
+	end process;
 
-process(clk)
-begin
-	if(rising_edge(clk)) then
-		pixx_1 <= pixx_selected;
-		pixx_2 <= pixx_1;
-		pixy_1 <= pixy_selected;
-		pixy_2 <= pixy_1;
-	end if;
-end process;
+	process(clk)
+	begin
+		if(rising_edge(clk)) then
+			pixx_1 <= pixx_selected;
+			pixx_2 <= pixx_1;
+			pixy_1 <= pixy_selected;
+			pixy_2 <= pixy_1;
+		end if;
+	end process;
 
---multiplexery citacu radku a sloupcu obrazu
-with border_draw_en select
-pixx_selected <= pixx_arena when '1',
-						inside_pix_x when '0',
-						(others => '0') when others;
+	--multiplexery citacu radku a sloupcu obrazu
+	with border_draw_en select
+	pixx_selected <= pixx_arena when '1',
+							inside_pix_x when '0',
+							(others => '0') when others;
 						
-with border_draw_en select
-pixy_selected <= pixy_arena when '1',
-						inside_pix_y when '0',
-						(others => '0') when others;
+	with border_draw_en select
+	pixy_selected <= pixy_arena when '1',
+							inside_pix_y when '0',
+							(others => '0') when others;
 						
---vystupni multiplexer grafickych objektu
-color <= "111" when white_dots_en = '1' else
-			graphic_mem_data when ((graphics_enable = '1') and (white_dots_en = '0')) else
-			"000";
+	--vystupni multiplexer grafickych objektu
+	color <= "111" when white_dots_en = '1' else
+				graphic_mem_data when ((graphics_enable = '1') and (white_dots_en = '0')) else
+				"000";
 						
---	move_register: process(clk)
+--		move_register: process(clk)
 --		begin
 --			if(rising_edge(clk)) then
 --				if(reg_ce = '1') then
@@ -174,7 +155,7 @@ color <= "111" when white_dots_en = '1' else
 --			end if;
 --		end process;
 			
-synchronizer: vga_sync
+	synchronizer: vga_sync
 		port map(
 			clk => clk,
 			h_sync => HS,
@@ -184,7 +165,7 @@ synchronizer: vga_sync
 			pixel_y => pxy,
 			frame_tick => frame_tick);
 			
-lvl_load_generator: level_generator
+	lvl_load_generator: level_generator
 		port map(
 		  pix_x => pxx, 
 		  pix_y => pxy, 
@@ -207,7 +188,7 @@ lvl_load_generator: level_generator
 		  selected_object => selected_object
 		);
 		
-graphics_generator:object_generator
+	graphics_generator:object_generator
 		port map(
 			clk => clk,
 			sel => selected_object,
@@ -221,14 +202,14 @@ graphics_generator:object_generator
 			mem_add_y => graphic_mem_addy
 		);
 		
-level_placement_rom:levels_rom
+	level_placement_rom:levels_rom
 		port map(
 			clock => clk,
          address_x => lvl_mem_addx,
          data_out => lvl_mem_data
 		);
 		
-sprite_memory: graphic_rom
+	sprite_memory: graphic_rom
 		port map(
 			clock => clk,
 			read_enable => graphic_mem_re,

@@ -42,50 +42,56 @@ end level_generator;
 
 architecture Behavioral of level_generator is
 
-component frequency_divider is
-		generic(modulo : natural := 15);		--deli cislem 2^(modulo + 1)
-    Port ( clk_in : in  STD_LOGIC;
-           clk_out_div : out  STD_LOGIC := '0');
-end component;
+	component frequency_divider is
+		generic(modulo : natural := 17);		--deli cislem 2^(modulo + 1)
+		Port ( clk_in : in  STD_LOGIC;
+				clk_out_div : out  STD_LOGIC := '0');
+	end component;
 
-signal divided_clock: std_logic := '0';
+	signal divided_clock: std_logic := '0';
 
---signal game_on: std_logic;
+	--signal game_on: std_logic;
 
---citace pixelu v radcich a sloupcich
-signal cntx, cnty, 					--citace cele obrazovky
+	--citace pixelu v radcich a sloupcich
+	signal cntx, cnty, 					--citace cele obrazovky
 		cntxoffs, cntyoffs, 					--citace hranic hraci plochy
 		inside_area_count_x, inside_area_count_y: natural range 0 to 1200 := 0;				--citace vnitrni oblasti hraci plochy
 
---signaly pro pohyb, vykresleni objektu v dane vzdalenosti
-signal mov_offs_x, mov_offs_y: natural range 0 to 385 := 0;		--offset hybaneho objektu
-signal count_x, count_y: natural range 0 to 385 := 0;
+	--signaly pro pohyb, vykresleni objektu v dane vzdalenosti
+	signal mov_offs_x, mov_offs_y: natural range 0 to 385 := 0;		--offset hybaneho objektu
+	signal count_x, count_y: natural range 0 to 385 := 0;
+	signal position_start_x, position_start_y, position_end_x, position_end_y: natural range 0 to 400 := 0;
 
 
---rozmery hraci plochy		
-constant dimm_x: natural range 0 to 800 := 512;				
-constant dimm_y: natural range 0 to 600 := 448;
+	--rozmery hraci plochy		
+	constant dimm_x: natural range 0 to 800 := 512;				
+	constant dimm_y: natural range 0 to 600 := 448;
 
 
-constant area_offset_x : natural range 0 to 200 := 120;				--posouva oblast vykreslovani hraci plochy
-constant area_offset_y : natural range 0 to 200 := 0;
+	constant area_offset_x : natural range 0 to 200 := 120;				--posouva oblast vykreslovani hraci plochy
+	constant area_offset_y : natural range 0 to 200 := 0;
 
---prochazeni v pameti
-signal row, column: natural range 0 to 35:= 0;
+	--prochazeni v pameti
+	signal row, column: natural range 0 to 35:= 0;
 
---stavovy automat pohybu
-type state_type is(LOAD,CHOOSE_MOVE, MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, MOVE_DONE);
-signal state: state_type;
-signal performing_move: std_logic := '0';
+	--stavovy automat pohybu
+	type state_type is(LOAD,CHOOSE_MOVE, MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, MOVE_DONE);
+	signal state: state_type;
+	signal performing_move: std_logic := '0';
 
 begin
 
-divider: frequency_divider
-	port map(
-		clk_in => clock,
-		clk_out_div => divided_clock
+	divider: frequency_divider
+		port map(
+			clk_in => clock,
+			clk_out_div => divided_clock
 		
-	);
+		);
+		
+	position_start_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
+	position_start_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
+	position_end_x <= to_integer(unsigned(end_pos(7 downto 5)))*64;
+	position_end_y <= to_integer(unsigned(end_pos(4 downto 2)))*64;
 	
 	--pocitadla radku a sloupcu cele obrazovky
 	cntx <= to_integer(unsigned(pix_x));
@@ -140,6 +146,7 @@ divider: frequency_divider
 		if(rising_edge(clock)) then
 			obj_offs_x <= (others => '0');
 			obj_offs_y <= (others => '0');
+			
 			if((cntx = 0 and cnty = 0) or (cntx = 799 and cnty = 0) or (cntx = 0 and cnty = 599) or (cntx = 799 and cnty = 599))then
 				graphics_enable <= '1';
 				border_draw_en <= '0';
@@ -158,14 +165,8 @@ divider: frequency_divider
 			elsif((inside_area_count_x < 448) and (inside_area_count_y < 384)) then      --kresleni vnitrni oblasti
 				graphics_enable <= '1';
 				if(performing_move = '1') then			--pohyb se vykonava
-					if((inside_area_count_x >= to_integer(unsigned(start_pos(7 downto 5)))*64) and (inside_area_count_x < 64 + to_integer(unsigned(start_pos(7 downto 5)))*64) 
-								and(inside_area_count_y >= to_integer(unsigned(start_pos(4 downto 2)))*64) and (inside_area_count_y < 64 + to_integer(unsigned(start_pos(4 downto 2)))*64) )then					--kdyz se nachazi na pocatecni pozici objektu
-						border_draw_en <= '0';
-						mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
-						selected_object <= "000";
-						
-					elsif((inside_area_count_x >= mov_offs_x) and (inside_area_count_x < 64 + mov_offs_x) 
-							and (inside_area_count_y >= mov_offs_y) and (inside_area_count_y < 64 + mov_offs_y)) then				--kdyz se nachazi na soucasne pozici objektu
+					if((inside_area_count_x >= mov_offs_x) and (inside_area_count_x < 64 + mov_offs_x) 
+					and (inside_area_count_y >= mov_offs_y) and (inside_area_count_y < 64 + mov_offs_y)) then				--kdyz se nachazi na soucasne pozici objektu
 							
 						obj_offs_x <= std_logic_vector(to_unsigned(mov_offs_x, 9));
 						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 9));
@@ -179,11 +180,19 @@ divider: frequency_divider
 							mem_add <= (others => '1');
 							selected_object <= "110";
 						end if;
+						
+					elsif((inside_area_count_x >= position_start_x) and (inside_area_count_x < (64 + position_start_x)) 
+								and(inside_area_count_y >= (position_start_y)) and (inside_area_count_y < (64 + position_start_y)))then					--kdyz se nachazi na pocatecni pozici objektu
+							border_draw_en <= '0';
+							mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+							selected_object <= "000";
+							
 					else						--kdyz se nachazi vsude jinde
 						border_draw_en <= '0';
 						mem_add <= std_logic_vector(to_unsigned(row + column,6));
 						selected_object <= mem_data;							
-					end if;					
+					end if;	
+					
 				else					--pohyb se nevykonava
 					border_draw_en <= '0';
 					mem_add <= std_logic_vector(to_unsigned(row + column,6));
@@ -213,8 +222,6 @@ divider: frequency_divider
 			state <= LOAD;
 			ack <= '0';
 		elsif(rising_edge(divided_clock)) then
-			count_x <= to_integer(unsigned(start_pos(7 downto 5)))*64; 	 --pocatecni offsety
-			count_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
 			
 			case state is				
 				when LOAD =>	
@@ -232,15 +239,17 @@ divider: frequency_divider
 				when CHOOSE_MOVE =>	
 					ack <= '0';
 					performing_move <= '0';
+					count_x <= position_start_x; 	 --pocatecni offsety
+					count_y <= position_start_y;
 				
-					if((start_pos(7 downto 5) xnor end_pos(7 downto 5)) = "111") then			--pokud se x-ove souradnice rovnaji, probiha VERTIKALNI pohyb
-						if((signed(end_pos(4 downto 2)) - signed(start_pos(4 downto 2))) > 0) then		--probiha pohyb DOLU
+					if(position_start_x = position_end_x) then			--pokud se x-ove souradnice rovnaji, probiha VERTIKALNI pohyb
+						if((position_end_y - position_start_y) > 0) then		--probiha pohyb DOLU
 							state <= MOVE_DOWN;
 						else 
 							state <= MOVE_UP;
 						end if;
 					else								--v tomto pripade se x-ove souradnice nerovnaji, takze probiha HORIZONTALNI pohyb
-						if((signed(end_pos(7 downto 5)) - signed(start_pos(7 downto 5))) > 0) then		--probiha pohyb DOPRAVA
+						if((position_end_x - position_start_x) > 0) then		--probiha pohyb DOPRAVA
 							state <= MOVE_RIGHT;
 						else				--probiha pohyb DOLEVA
 							state <= MOVE_LEFT;
@@ -250,11 +259,12 @@ divider: frequency_divider
 				when MOVE_DOWN =>
 					ack <= '0';
 					performing_move <= '1';
+					count_x <= position_start_x;
 					count_y <= mov_offs_y + 1;
 				
-					if(count_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
+					if(count_y = position_end_y)	then 
 						state <= MOVE_DONE;
-					elsif(count_y < to_integer(unsigned(end_pos(4 downto 2)))*64) then
+					elsif(count_y < position_end_y) then
 						state <= MOVE_DOWN;
 					else 
 						state <= LOAD;
@@ -263,11 +273,12 @@ divider: frequency_divider
 				when MOVE_UP =>
 					ack <= '0';
 					performing_move <= '1';
+					count_x <= position_start_x;
 					count_y <= mov_offs_y - 1;
 					
-					if(count_y = to_integer(unsigned(end_pos(4 downto 2)))*64)	then 
+					if(count_y = position_end_y)	then 
 						state <= MOVE_DONE;
-					elsif(count_y > to_integer(unsigned(end_pos(7 downto 5)))*64) then
+					elsif(count_y > position_end_y) then
 						state <= MOVE_UP;
 					else 
 						state <= LOAD;
@@ -276,11 +287,12 @@ divider: frequency_divider
 				when MOVE_LEFT =>	
 					ack <= '0';
 					performing_move <= '1';
-					count_x <= mov_offs_x + 1;
+					count_x <= mov_offs_x - 1;
+					count_y <= position_start_y;
 						
-					if(count_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then 
+					if(count_x = position_end_x)	then 
 						state <= MOVE_DONE;
-					elsif(count_x < to_integer(unsigned(end_pos(7 downto 5)))*64) then
+					elsif(count_x > position_end_x) then
 						state <= MOVE_LEFT;
 					else 
 						state <= LOAD;
@@ -289,11 +301,12 @@ divider: frequency_divider
 				when MOVE_RIGHT =>	
 					ack <= '0';
 					performing_move <= '1';
-					count_x <= mov_offs_x - 1;
+					count_x <= mov_offs_x + 1;
+					count_y <= position_start_y;
 					
-					if(count_x = to_integer(unsigned(end_pos(7 downto 5)))*64)	then
+					if(count_x = position_end_x)	then
 						state <= MOVE_DONE;
-					elsif(count_x > to_integer(unsigned(end_pos(7 downto 5)))*64) then
+					elsif(count_x < position_end_x) then
 						state <= MOVE_RIGHT;
 					else 
 						state <= LOAD;
@@ -302,8 +315,8 @@ divider: frequency_divider
 				when MOVE_DONE =>	
 					ack <= '1';
 					performing_move <= '1';
-					count_x <= to_integer(unsigned(end_pos(7 downto 5)))*64;
-					count_y <= to_integer(unsigned(end_pos(4 downto 2)))*64;
+					count_x <= position_end_x;
+					count_y <= position_end_y;
 			
 					if(move = '0') then 
 						state <= LOAD;
@@ -314,6 +327,8 @@ divider: frequency_divider
 				when others => 
 					ack <= '0';
 					performing_move <= '0';
+					count_x <= 0;
+					count_y <= 0;
 					state <= LOAD;				
 			end case;
 		end if;
