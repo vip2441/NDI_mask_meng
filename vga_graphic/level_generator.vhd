@@ -27,7 +27,7 @@ entity level_generator is
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
            clock: in  STD_LOGIC;
-			  border_draw_en, graphics_enable : out  STD_LOGIC;
+			  border_draw_en: out  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
 			  --offsety zvolenych objektu
@@ -43,7 +43,7 @@ end level_generator;
 architecture Behavioral of level_generator is
 
 	component frequency_divider is
-		generic(modulo : natural := 17);		--deli cislem 2^(modulo + 1)
+		generic(modulo : natural := 15);		--deli cislem 2^(modulo + 1)
 		Port ( clk_in : in  STD_LOGIC;
 				clk_out_div : out  STD_LOGIC := '0');
 	end component;
@@ -68,7 +68,7 @@ architecture Behavioral of level_generator is
 	constant dimm_y: natural range 0 to 600 := 448;
 
 
-	constant area_offset_x : natural range 0 to 200 := 120;				--posouva oblast vykreslovani hraci plochy
+	constant area_offset_x : natural range 0 to 200 := 192;				--posouva oblast vykreslovani hraci plochy
 	constant area_offset_y : natural range 0 to 200 := 0;
 
 	--prochazeni v pameti
@@ -148,7 +148,6 @@ begin
 			obj_offs_y <= (others => '0');
 			
 			if((cntx = 0 and cnty = 0) or (cntx = 799 and cnty = 0) or (cntx = 0 and cnty = 599) or (cntx = 799 and cnty = 599))then
-				graphics_enable <= '1';
 				border_draw_en <= '0';
 				mem_add <= (others => '1');
 				selected_object <= "001";
@@ -157,13 +156,11 @@ begin
 										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										((cntxoffs >=dimm_x and cntxoffs < 64 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
 										(cntxoffs < 64 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then
-				graphics_enable <= '1';
 				border_draw_en <= '1';
 				mem_add <= (others => '1');
 				selected_object <= "101";
 				
 			elsif((inside_area_count_x < 448) and (inside_area_count_y < 384)) then      --kresleni vnitrni oblasti
-				graphics_enable <= '1';
 				if(performing_move = '1') then			--pohyb se vykonava
 					if((inside_area_count_x >= mov_offs_x) and (inside_area_count_x < 64 + mov_offs_x) 
 					and (inside_area_count_y >= mov_offs_y) and (inside_area_count_y < 64 + mov_offs_y)) then				--kdyz se nachazi na soucasne pozici objektu
@@ -199,7 +196,6 @@ begin
 					selected_object <= mem_data;
 				end if;				
 			else						--nekreslit nic
-				graphics_enable <= '0';
 				border_draw_en <= '0';
 				mem_add <= (others => '1');
 				selected_object <= "100";			--objekt niceho

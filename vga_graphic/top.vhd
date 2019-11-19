@@ -5,8 +5,13 @@ use IEEE.NUMERIC_STD.ALL;
 entity top is
     Port ( clk : in  STD_LOGIC := '0';
            HS,VS,R,G,B, frame_tick : out  STD_LOGIC := '0';
+			  start_pos, end_pos: in std_logic_vector(7 downto 0);
 			  
-			  --experimentalni signaly
+			  --pamet usporadani levelu
+			  lvl_mem_add: out std_logic_vector(5 downto 0);
+			  lvl_mem_data: in std_logic_vector(2 downto 0);
+			  
+			  --signaly pro pohyb
 			  move: in std_logic := '0';
 			  reset: in std_logic := '0';
 			  ack: out std_logic := '0');
@@ -26,7 +31,7 @@ architecture Behavioral of top is
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
            clock : in  STD_LOGIC;
-			  border_draw_en, graphics_enable : out  STD_LOGIC;
+			  border_draw_en: out  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
 			  start_pos, end_pos: std_logic_vector(7 downto 0);
@@ -43,7 +48,7 @@ architecture Behavioral of top is
 			  sel: in std_logic_vector(2 downto 0);
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
-			  white_dots_en: out std_logic;
+			  white_dots_en, obj_en: out std_logic;
 			  
 			  --signaly pro pamet
 			  mem_read_enable: out std_logic;
@@ -70,10 +75,6 @@ architecture Behavioral of top is
 	signal pxx, pxy: std_logic_vector(10 downto 0) := (others => '0');
 	signal color: std_logic_vector(2 downto 0);
 
-	--signaly pro ram levelu
-	signal lvl_mem_addx: std_logic_vector(5 downto 0) := (others => '0');
-	signal lvl_mem_data: std_logic_vector(2 downto 0) := (others => '0');
-
 	--signaly pro grafickou pamet
 	signal graphic_mem_addx: std_logic_vector(11 downto 0) := (others => '0');
 	signal graphic_mem_addy: std_logic_vector(2 downto 0) := (others => '0');
@@ -94,10 +95,7 @@ architecture Behavioral of top is
 	signal graphics_enable, white_dots_en: std_logic;
 
 	--signaly zabyvajici se pohybem
-	signal start_pos_reg_in: std_logic_vector(7 downto 0) := "10001011";
-	signal end_pos_reg_in : std_logic_vector (7 downto 0) := "10010011";
-	--signal start_pos_reg_out, end_pos_reg_out: std_logic_vector(7 downto 0);
-	--signal reg_ce: std_logic := '0';
+	signal start_pos_reg_out, end_pos_reg_out: std_logic_vector(7 downto 0);
 
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
@@ -145,15 +143,13 @@ begin
 				graphic_mem_data when ((graphics_enable = '1') and (white_dots_en = '0')) else
 				"000";
 						
---		move_register: process(clk)
---		begin
---			if(rising_edge(clk)) then
---				if(reg_ce = '1') then
---					start_pos_reg_out <= start_pos_reg_in;
---					end_pos_reg_out <= end_pos_reg_in;
---				end if;
---			end if;
---		end process;
+		move_register: process(clk)
+		begin
+			if(rising_edge(clk)) then
+				start_pos_reg_out <= start_pos;
+				end_pos_reg_out <= end_pos;
+			end if;
+		end process;
 			
 	synchronizer: vga_sync
 		port map(
@@ -173,15 +169,14 @@ begin
 		  pixy_offs => pixy_arena,
 		  inside_pixx_offs => inside_pix_x,
 		  inside_pixy_offs => inside_pix_y,
-		  mem_add => lvl_mem_addx,
+		  mem_add => lvl_mem_add,
 		  mem_data => lvl_mem_data,
         clock => clk,
-		  graphics_enable => graphics_enable,
 		  move => move,
 		  reset => reset,					--reset automatu zabyvajicim se pohybem
 		  ack => ack,
-		  start_pos => start_pos_reg_in,
-		  end_pos => end_pos_reg_in,
+		  start_pos => start_pos_reg_out,
+		  end_pos => end_pos_reg_out,
 		  obj_offs_x => gr_offs_x, 
 		  obj_offs_y => gr_offs_y,
 		  border_draw_en => border_draw_en,
@@ -197,16 +192,10 @@ begin
          offset_x => gr_offs_x,
 			offset_y => gr_offs_y,	
 			white_dots_en => white_dots_en,
+			obj_en => graphics_enable,
 			mem_read_enable => graphic_mem_re,
 			mem_add_x => graphic_mem_addx,
 			mem_add_y => graphic_mem_addy
-		);
-		
-	level_placement_rom:levels_rom
-		port map(
-			clock => clk,
-         address_x => lvl_mem_addx,
-         data_out => lvl_mem_data
 		);
 		
 	sprite_memory: graphic_rom
