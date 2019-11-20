@@ -84,9 +84,28 @@ architecture Behavioral of top is
 	--offsety grafickych obejktu
 	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
 
+<<<<<<< HEAD
 	--signaly pro rizeni generatoru objektu
 	signal selected_object:std_logic_vector(2 downto 0);
 	signal border_draw_en:std_logic;
+=======
+component color_output_mux is
+    Port ( floor_obj, wall_obj, stone_obj,player_obj, food_obj, gui_obj : in  STD_LOGIC_VECTOR (2 downto 0);
+           R,G,B : out  STD_LOGIC;
+           floor_sel, wall_sel, stone_sel, player_sel,food_sel, gui_sel: in  STD_LOGIC);
+end component;
+
+component gui_generator is
+	Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
+			 clk : in STD_LOGIC;
+			 lvl_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
+			 lvl_desitky : in STD_LOGIC_VECTOR (3 downto 0);
+			 stp_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
+			 stp_desitky : in STD_LOGIC_VECTOR (3 downto 0);
+			 color : out STD_LOGIC_VECTOR (2 downto 0);
+			 gui_sel : out STD_LOGIC);
+end component;
+>>>>>>> 34bab866f0d5f05ec958d45357540553443ca86e
 
 	--signaly pixelu s offsetem
 	signal pixx_arena, pixy_arena, inside_pix_x, inside_pix_y, pixx_selected, pixy_selected: std_logic_vector(10 downto 0) := (others => '0');
@@ -94,11 +113,30 @@ architecture Behavioral of top is
 	--signaly vystupniho multiplexeru
 	signal graphics_enable, white_dots_en: std_logic;
 
+<<<<<<< HEAD
 	--signaly zabyvajici se pohybem
 	signal start_pos_reg_out, end_pos_reg_out: std_logic_vector(7 downto 0);
 
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
+=======
+--vnitrni signaly z vystupu generatoru objektu
+signal floor_pic, wall_pic, stone_pic, player_pic, food_pic, gui_pic: std_logic_vector(2 downto 0) := (others => '0');
+
+--signaly pro povoleni vykreslovani objektu
+signal gen_floor_en, gen_wall_en, gen_stone_en,gen_food_en, gen_player_en, border_draw_en, gui_en:std_logic;
+
+signal selected_object:std_logic_vector(2 downto 0);
+
+--signaly pixelu s offsetem
+signal pixx_arena, pixy_arena, inside_pix_x, inside_pix_y, pixx_selected, pixy_selected: std_logic_vector(10 downto 0) := (others => '0');
+>>>>>>> 34bab866f0d5f05ec958d45357540553443ca86e
+
+--signaly pro tahy a levely
+signal lvl_1: std_logic_vector(3 downto 0) := "0101";
+signal lvl_10: std_logic_vector(3 downto 0) := "0010";
+signal stp_1: std_logic_vector(3 downto 0) := "0100";
+signal stp_10: std_logic_vector(3 downto 0) := "0100";
 
 begin
 
@@ -115,6 +153,7 @@ begin
 				B <= '0';
 			end if;
 		end if;
+<<<<<<< HEAD
 	end process;
 
 	process(clk)
@@ -150,6 +189,22 @@ begin
 				end_pos_reg_out <= end_pos;
 			end if;
 		end process;
+=======
+	end if;
+end process;
+
+info_generator: gui_generator
+		port map(
+			clk => clk,
+			pix_x => pxx,
+			pix_y => pxy,
+			gui_sel => gui_en,
+			color => gui_pic,
+			lvl_jednotky => lvl_1,
+			lvl_desitky => lvl_10,
+			stp_jednotky => stp_1,
+			stp_desitky => stp_10);
+>>>>>>> 34bab866f0d5f05ec958d45357540553443ca86e
 			
 	synchronizer: vga_sync
 		port map(
@@ -207,5 +262,70 @@ begin
          data_out => graphic_mem_data
 		);
 
+<<<<<<< HEAD
+=======
+floor_object_generator: floor_object
+		port map(
+			pix_x => inside_pix_x,
+			pix_y => inside_pix_y,
+         enable => gen_floor_en,
+			clk => clk,
+         color => floor_pic
+		);
+			
+wall_object_generator: wall_object
+		port map(
+			pix_x => pixx_selected,
+			pix_y => pixy_selected,
+         enable => gen_wall_en,
+			clk => clk,
+         color => wall_pic
+		);
+		
+stone_object_generator: stone_obj
+		port map(
+			pix_x => inside_pix_x,
+			pix_y => inside_pix_y,
+         enable => gen_stone_en,
+			clk => clk,
+         color => stone_pic
+		);		
+		
+player_object_generator: player_obj
+		port map(
+			pix_x => inside_pix_x,
+			pix_y => inside_pix_y,
+         enable => gen_player_en,
+			clk => clk,
+         color => player_pic
+		);		
+		
+food_object_generator: food_obj
+		port map(
+			pix_x => inside_pix_x,
+			pix_y => inside_pix_y,
+         enable => gen_food_en,
+			clk => clk,
+         color => food_pic
+		);		
+						
+col_out_mux: color_output_mux
+		port map(
+			floor_obj => floor_pic, 
+			wall_obj => wall_pic, 
+			player_obj => player_pic, 
+			stone_obj => stone_pic, 
+			food_obj => food_pic,
+         floor_sel => gen_floor_en, 
+			wall_sel => gen_wall_en, 
+			player_sel => gen_player_en,
+			stone_sel => gen_stone_en,
+			food_sel => gen_food_en,
+			gui_sel => gui_en,
+			gui_obj => gui_pic,
+			R => red,
+			G => green,
+			B => blue);
+>>>>>>> 34bab866f0d5f05ec958d45357540553443ca86e
 end Behavioral;
 
