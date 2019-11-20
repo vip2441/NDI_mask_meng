@@ -23,7 +23,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity levels_rom is
     Port ( clock: in  STD_LOGIC;
-           address_x : in  STD_LOGIC_VECTOR (5 downto 0);
+           address : in  STD_LOGIC_VECTOR (5 downto 0);
            data_out : out  STD_LOGIC_VECTOR (2 downto 0));
 end levels_rom;
 
@@ -45,7 +45,7 @@ begin
 memory_read:process(clock)
 	begin
 		if(falling_edge(clock)) then
-			data_out <= rom(to_integer(unsigned(address_x)));
+			data_out <= rom(to_integer(unsigned(address)));
 		end if;
 	end process;
 

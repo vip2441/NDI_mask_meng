@@ -1,5 +1,5 @@
 NET "clk" LOC = "T9";
-NET "move" LOC = "K13";
+NET "move" LOC = "L13";
 NET "reset" LOC = "L14";
 NET "ack" LOC = "P12";
 NET "HS" LOC = "R9";
@@ -8,3 +8,12 @@ NET "R" LOC = "R12";
 NET "G" LOC = "T12";
 NET "B" LOC = "R11";
 NET "frame_tick" LOC = "P11";
+
+#NET "lvl_1[3]" LOC = K13;
+#NET "lvl_1[2]" LOC = K14;
+#NET "lvl_1[1]" LOC = J13;
+#NET "lvl_1[0]" LOC = J14;
+#NET "lvl_10[3]" LOC = H13;
+#NET "lvl_10[2]" LOC = H14;
+#NET "lvl_10[1]" LOC = G12;
+#NET "lvl_10[0]" LOC = F12;
