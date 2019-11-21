@@ -14,11 +14,11 @@ entity top is
 			  --signaly pro pohyb
 			  move: in std_logic := '0';
 			  reset: in std_logic := '0';
-			  ack: out std_logic := '0');
+			  ack: out std_logic := '0';
 			  
---			  --herni informace
---			  lvl_1: in std_logic_vector(3 downto 0);
---			  lvl_10: in std_logic_vector(3 downto 0));
+			  --herni informace
+			  lvl_1: in std_logic_vector(3 downto 0);
+			  lvl_10: in std_logic_vector(3 downto 0));
 end top;
 
 architecture Behavioral of top is
@@ -77,24 +77,24 @@ architecture Behavioral of top is
 	signal lvl_mem_data: STD_LOGIC_VECTOR (2 downto 0);
 	signal lvl_mem_add: STD_LOGIC_VECTOR (5 downto 0);
 	
---	component gui_generator is
---		Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
---				 clk : in STD_LOGIC;
---				 lvl_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
---			 	lvl_desitky : in STD_LOGIC_VECTOR (3 downto 0);
---			 	stp_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
---			 	stp_desitky : in STD_LOGIC_VECTOR (3 downto 0);
---			 	address_x : out STD_LOGIC_VECTOR (10 downto 0);
---				address_y : out STD_LOGIC_VECTOR (5 downto 0);
---			 	gui_sel : out STD_LOGIC);
---	end component;
---
---	component gui_sprite_rom is 
---		Port ( clock, read_enable : in  STD_LOGIC;
---           address_x: in  STD_LOGIC_VECTOR (10 downto 0);
---			  address_y: in  STD_LOGIC_VECTOR (5 downto 0);
---           data_out : out  STD_LOGIC_VECTOR (2 downto 0));
---	end component;
+	component gui_generator is
+		Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
+				 clk : in STD_LOGIC;
+				 lvl_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
+			 	lvl_desitky : in STD_LOGIC_VECTOR (3 downto 0);
+			 	stp_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
+			 	stp_desitky : in STD_LOGIC_VECTOR (3 downto 0);
+			 	address_x : out STD_LOGIC_VECTOR (10 downto 0);
+				address_y : out STD_LOGIC_VECTOR (4 downto 0);
+			 	gui_sel : out STD_LOGIC);
+	end component;
+
+	component gui_sprite_rom is 
+		Port ( clock, read_enable : in  STD_LOGIC;
+           address_x: in  STD_LOGIC_VECTOR (10 downto 0);
+			  address_y: in  STD_LOGIC_VECTOR (4 downto 0);
+           data_out : out  STD_LOGIC_VECTOR (2 downto 0));
+	end component;
 
 	--vnitrni signaly pro synchronizaci grafiky
 	signal vid_on: std_logic := '0';
@@ -111,9 +111,7 @@ architecture Behavioral of top is
 	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
 
 	--signaly pro rizeni generatoru objektu
-	signal selected_object
-	--, gui_pic
-	:std_logic_vector(2 downto 0);
+	signal selected_object, gui_pic :std_logic_vector(2 downto 0);
 	
 	signal border_draw_en:std_logic;
 
@@ -121,9 +119,7 @@ architecture Behavioral of top is
 	signal pixx_arena, pixy_arena, inside_pix_x, inside_pix_y, pixx_selected, pixy_selected: std_logic_vector(10 downto 0) := (others => '0');
 
 	--signaly vystupniho multiplexeru
-	signal graphics_enable, white_dots_en
---	, gui_en
-: std_logic;
+	signal graphics_enable, white_dots_en, gui_en: std_logic;
 
 	signal start_pos: std_logic_vector(7 downto 0) := "10001011";
 	signal end_pos: std_logic_vector(7 downto 0) := "11001011";
@@ -137,12 +133,12 @@ architecture Behavioral of top is
 --signaly pro tahy a levely
 --signal lvl_1: std_logic_vector(3 downto 0) := "0101";
 --signal lvl_10: std_logic_vector(3 downto 0) := "0010";
---signal stp_1: std_logic_vector(3 downto 0) := "0100";
---signal stp_10: std_logic_vector(3 downto 0) := "0100";
---
-----signaly pameti pro vykreslovani gui
---signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
---signal gui_add_y: STD_LOGIC_VECTOR (5 downto 0);
+signal stp_1: std_logic_vector(3 downto 0) := "0100";
+signal stp_10: std_logic_vector(3 downto 0) := "0100";
+
+--signaly pameti pro vykreslovani gui
+signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
+signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
 
 begin
 
@@ -185,7 +181,7 @@ begin
 	--vystupni multiplexer grafickych objektu
 	color <= "111" when white_dots_en = '1' else
 				graphic_mem_data when ((graphics_enable = '1') and (white_dots_en = '0')) else
-				--gui_pic when gui_en = '1' else
+				gui_pic when gui_en = '1' else
 				"000";
 						
 	move_register: process(clk)
@@ -203,26 +199,26 @@ begin
          data_out => lvl_mem_data			
 		);
 
---	info_generator: gui_generator
---		port map(
---			clk => clk,
---			pix_x => pxx,
---			pix_y => pxy,
---			gui_sel => gui_en,
---			lvl_jednotky => lvl_1,
---			lvl_desitky => lvl_10,
---			stp_jednotky => stp_1,
---			stp_desitky => stp_10,
---			address_x => gui_add_x,
---			address_y => gui_add_y);
---			
---	info_sprite_rom: gui_sprite_rom
---		port map(
---			clock => clk,
---			read_enable => gui_en,
---			address_x => gui_add_x,
---			address_y => gui_add_y,
---			data_out => gui_pic);
+	info_generator: gui_generator
+		port map(
+			clk => clk,
+			pix_x => pxx,
+			pix_y => pxy,
+			gui_sel => gui_en,
+			lvl_jednotky => lvl_1,
+			lvl_desitky => lvl_10,
+			stp_jednotky => stp_1,
+			stp_desitky => stp_10,
+			address_x => gui_add_x,
+			address_y => gui_add_y);
+			
+	info_sprite_rom: gui_sprite_rom
+		port map(
+			clock => clk,
+			read_enable => gui_en,
+			address_x => gui_add_x,
+			address_y => gui_add_y,
+			data_out => gui_pic);
 			
 	synchronizer: vga_sync
 		port map(
