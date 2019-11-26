@@ -40,22 +40,40 @@ architecture Behavioral of Shift_and_Compare is
 --pattern loga
 constant logo_sync_pattern: std_logic_vector(31 downto 0) := X"0f1f2f1f";
 
-signal shift_reg: std_logic_vector(31 downto 0) := (others => '0');
+signal shift_reg: std_logic_vector(0 to 31) := (others => '0');
+signal sync_pattern_swapped: std_logic_vector(31 downto 0) := (others => '0');
 
 begin
-	
-process(clk,rst,en)
-begin
-	if(rst = '1') then
-		shift_reg <= (others => '0');
-	elsif(rising_edge(clk))then
-		if(en = '1') then
-			
-		end if;	
-	end if;
-	
-end process;
 
+	swap_pattern:process(clk)
+	begin
+		for i in 0 to 3 loop
+			for j in 0 to 7 loop
+				sync_pattern_swapped((8 * i) + j) <= logo_sync_pattern(7 + (8 * i) - j);
+			end loop;
+		end loop;
+	end process;
+	
+	swap_output_bits:process (clk, shift_reg)
+	begin
+		for i in 0 to 7 loop
+			data_out(i) <= shift_reg(31 - i);
+		end loop;
+	end process;
+	
+	shift_register:process(clk,rst)
+	begin
+		if(rst = '1') then
+			shift_reg <= (others => '0');
+		elsif(rising_edge(clk))then
+			if(en = '1') then
+				shift_reg <= data_in & shift_reg(0 to 30);
+			end if;	
+		end if;
+	end process;
+
+sync_found <= '1' when ((sync_pattern_swapped xnor shift_reg) = X"00000000") else
+					'0';
 
 end Behavioral;
 

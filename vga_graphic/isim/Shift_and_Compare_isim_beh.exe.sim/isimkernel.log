@@ -1,0 +1,29 @@
+Command line:
+   Shift_and_Compare_isim_beh.exe
+     -simmode  gui
+     -simrunnum  0
+     -socket  49207
+
+Sun Nov 24 15:52:06 2019
+
+
+ Elaboration Time: 0.046875 sec
+
+ Current Memory Usage: 5159.63 Meg
+
+ Total Signals          : 8
+ Total Nets             : 77
+ Total Signal Drivers   : 4
+ Total Blocks           : 2
+ Total Primitive Blocks : 2
+ Total Processes        : 4
+ Total Traceable Variables  : 9
+ Total Scalar Nets and Variables : 469
+Total Line Count : 10
+
+ Total Simulation Time: 0.0625 sec
+
+ Current Memory Usage: 5159.63 Meg
+
+Sun Nov 24 15:52:13 2019
+
