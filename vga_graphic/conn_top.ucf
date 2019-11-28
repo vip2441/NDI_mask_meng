@@ -17,6 +17,10 @@ NET "lvl_10[3]" LOC = H13;
 NET "lvl_10[2]" LOC = H14;
 NET "lvl_10[1]" LOC = G12;
 NET "lvl_10[0]" LOC = F12;
+<<<<<<< HEAD
 #Created by Constraints Editor (xc3s200-ft256-4) - 2019/11/28
+=======
+#Created by Constraints Editor (xc3s200-ft256-4) - 2019/11/26
+>>>>>>> bd1b47e53f981afaa7129638d210f8b27624edd8
 NET "clk" TNM_NET = clk;
 TIMESPEC TS_clk = PERIOD "clk" 50 MHz HIGH 50%;

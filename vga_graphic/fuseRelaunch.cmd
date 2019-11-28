@@ -1,1 +1,1 @@
--intstyle "ise" -incremental -o "C:/SharedVmchine/NDI_mask_meng/vga_graphic/divider_testbench_isim_beh.exe" -prj "C:/SharedVmchine/NDI_mask_meng/vga_graphic/divider_testbench_beh.prj" "work.divider_testbench" 
+-intstyle "ise" -incremental -o "C:/SharedVmchine/NDI_mask_meng/vga_graphic/Shift_and_Compare_isim_beh.exe" -prj "C:/SharedVmchine/NDI_mask_meng/vga_graphic/Shift_and_Compare_beh.prj" "work.Shift_and_Compare" 
