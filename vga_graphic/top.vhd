@@ -5,11 +5,11 @@ use IEEE.NUMERIC_STD.ALL;
 entity top is
     Port ( clk : in  STD_LOGIC := '0';
            HS,VS,R,G,B, frame_tick : out  STD_LOGIC := '0';
-			  --start_pos, end_pos: in std_logic_vector(7 downto 0);
+			  start_pos, end_pos: in std_logic_vector(7 downto 0);
 			  
 			  --pamet usporadani levelu
---			  lvl_mem_add: out std_logic_vector(5 downto 0);
---			  lvl_mem_data: in std_logic_vector(2 downto 0);
+			  lvl_mem_add: out std_logic_vector(5 downto 0);
+			  lvl_mem_data: in std_logic_vector(2 downto 0);
 			  
 			  --signaly pro pohyb
 			  move: in std_logic := '0';
@@ -17,8 +17,8 @@ entity top is
 			  ack: out std_logic := '0';
 			  
 			  --herni informace
-			  lvl_1: in std_logic_vector(3 downto 0);
-			  lvl_10: in std_logic_vector(3 downto 0));
+			  lvl_1, lvl_10: in std_logic_vector(3 downto 0)
+		);
 end top;
 
 architecture Behavioral of top is
@@ -68,15 +68,6 @@ architecture Behavioral of top is
            data_out : out  STD_LOGIC_VECTOR (2 downto 0));
 	end component;
 	
-	component levels_rom is
-		Port ( clock: in  STD_LOGIC;
-		   	address : in  STD_LOGIC_VECTOR (5 downto 0);
-           data_out : out  STD_LOGIC_VECTOR (2 downto 0));
-	end component;
-	
-	signal lvl_mem_data: STD_LOGIC_VECTOR (2 downto 0);
-	signal lvl_mem_add: STD_LOGIC_VECTOR (5 downto 0);
-	
 	component gui_generator is
 		Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
 				 clk : in STD_LOGIC;
@@ -121,24 +112,15 @@ architecture Behavioral of top is
 	--signaly vystupniho multiplexeru
 	signal graphics_enable, white_dots_en, gui_en: std_logic;
 
-	signal start_pos: std_logic_vector(7 downto 0) := "10001011";
-	signal end_pos: std_logic_vector(7 downto 0) := "11001011";
-
-	--signaly zabyvajici se pohybem
-	signal start_pos_reg_out, end_pos_reg_out: std_logic_vector(7 downto 0);
-
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
 
---signaly pro tahy a levely
---signal lvl_1: std_logic_vector(3 downto 0) := "0101";
---signal lvl_10: std_logic_vector(3 downto 0) := "0010";
-signal stp_1: std_logic_vector(3 downto 0) := "0100";
-signal stp_10: std_logic_vector(3 downto 0) := "0100";
-
---signaly pameti pro vykreslovani gui
-signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
-signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
+	--signaly pameti pro vykreslovani gui
+	signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
+	signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
+	
+	--docasne signaly cisla tahu
+	signal stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
 
 begin
 
@@ -183,21 +165,6 @@ begin
 				graphic_mem_data when ((graphics_enable = '1') and (white_dots_en = '0')) else
 				gui_pic when gui_en = '1' else
 				"000";
-						
-	move_register: process(clk)
-	begin
-		if(rising_edge(clk)) then
-			start_pos_reg_out <= start_pos;
-			end_pos_reg_out <= end_pos;
-		end if;
-	end process;
-
-	level_placement: levels_rom
-		port map(
-			clock => clk,
-		   address => lvl_mem_add,
-         data_out => lvl_mem_data			
-		);
 
 	info_generator: gui_generator
 		port map(
@@ -244,8 +211,8 @@ begin
 		  move => move,
 		  reset => reset,					--reset automatu zabyvajicim se pohybem
 		  ack => ack,
-		  start_pos => start_pos_reg_out,
-		  end_pos => end_pos_reg_out,
+		  start_pos => start_pos,
+		  end_pos => end_pos,
 		  obj_offs_x => gr_offs_x, 
 		  obj_offs_y => gr_offs_y,
 		  border_draw_en => border_draw_en,
