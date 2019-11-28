@@ -95,6 +95,14 @@ architecture Behavioral of top is
 			  address_y: in  STD_LOGIC_VECTOR (4 downto 0);
            data_out : out  STD_LOGIC_VECTOR (2 downto 0));
 	end component;
+	
+	component SRAM_loader is
+		Port ( rst, data_ready, sync, clk : in  STD_LOGIC;
+           read_en, next_sync, nWE, load_complete : out  STD_LOGIC;
+           data_in : in  STD_LOGIC_VECTOR (7 downto 0);
+           data_out : out  STD_LOGIC_VECTOR (15 downto 0);
+           addr : out  STD_LOGIC_VECTOR (17 downto 0));
+	end component;
 
 	--vnitrni signaly pro synchronizaci grafiky
 	signal vid_on: std_logic := '0';
@@ -130,15 +138,15 @@ architecture Behavioral of top is
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
 
---signaly pro tahy a levely
---signal lvl_1: std_logic_vector(3 downto 0) := "0101";
---signal lvl_10: std_logic_vector(3 downto 0) := "0010";
-signal stp_1: std_logic_vector(3 downto 0) := "0100";
-signal stp_10: std_logic_vector(3 downto 0) := "0100";
+	--signaly pro tahy a levely
+	--signal lvl_1: std_logic_vector(3 downto 0) := "0101";
+	--signal lvl_10: std_logic_vector(3 downto 0) := "0010";
+	signal stp_1: std_logic_vector(3 downto 0) := "0100";
+	signal stp_10: std_logic_vector(3 downto 0) := "0100";
 
---signaly pameti pro vykreslovani gui
-signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
-signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
+	--signaly pameti pro vykreslovani gui
+	signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
+	signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
 
 begin
 
