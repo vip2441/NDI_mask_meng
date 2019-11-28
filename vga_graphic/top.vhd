@@ -123,24 +123,12 @@ architecture Behavioral of top is
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
 
-<<<<<<< HEAD
 	--signaly pameti pro vykreslovani gui
 	signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
 	signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
 	
 	--docasne signaly cisla tahu
 	signal stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
-=======
-	--signaly pro tahy a levely
-	--signal lvl_1: std_logic_vector(3 downto 0) := "0101";
-	--signal lvl_10: std_logic_vector(3 downto 0) := "0010";
-	signal stp_1: std_logic_vector(3 downto 0) := "0100";
-	signal stp_10: std_logic_vector(3 downto 0) := "0100";
-
-	--signaly pameti pro vykreslovani gui
-	signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
-	signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
->>>>>>> bd1b47e53f981afaa7129638d210f8b27624edd8
 
 begin
 
