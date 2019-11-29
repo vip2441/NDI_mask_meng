@@ -34,9 +34,11 @@ entity level_generator is
 			  obj_offs_x, obj_offs_y: out std_logic_vector(8 downto 0);
 			  --signaly pohybu
 			  start_pos, end_pos: in std_logic_vector(7 downto 0);
-			  --experimentalni signaly
 			  move, reset : in  STD_LOGIC;
-			  ack: out std_logic
+			  ack: out std_logic;
+			  
+			  --signal zacatku hry
+			  game_on: in std_logic
 			  );
 end level_generator;
 
@@ -49,8 +51,6 @@ architecture Behavioral of level_generator is
 	end component;
 
 	signal divided_clock: std_logic := '0';
-
-	--signal game_on: std_logic;
 
 	--citace pixelu v radcich a sloupcich
 	signal cntx, cnty, 					--citace cele obrazovky
@@ -161,7 +161,7 @@ begin
 				selected_object <= "101";
 				
 			elsif((inside_area_count_x < 448) and (inside_area_count_y < 384)) then      --kresleni vnitrni oblasti
-				if(performing_move = '1') then			--pohyb se vykonava
+				if(performing_move = '1' and game_on = '1') then			--pohyb se vykonava
 					if((inside_area_count_x >= mov_offs_x) and (inside_area_count_x < 64 + mov_offs_x) 
 					and (inside_area_count_y >= mov_offs_y) and (inside_area_count_y < 64 + mov_offs_y)) then				--kdyz se nachazi na soucasne pozici objektu
 							
@@ -188,12 +188,15 @@ begin
 						border_draw_en <= '0';
 						mem_add <= std_logic_vector(to_unsigned(row + column,6));
 						selected_object <= mem_data;							
-					end if;	
-					
-				else					--pohyb se nevykonava
+					end if;
+				elsif(game_on = '1' and performing_move = '0') then		--kresli to, co je v pameti
 					border_draw_en <= '0';
 					mem_add <= std_logic_vector(to_unsigned(row + column,6));
 					selected_object <= mem_data;
+				else					--pohyb se nevykonava a jeste ani nezacala hra
+					border_draw_en <= '0';
+					mem_add <= (others => '1');
+					selected_object <= "101";
 				end if;				
 			else						--nekreslit nic
 				border_draw_en <= '0';

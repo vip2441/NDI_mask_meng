@@ -8,15 +8,16 @@ NET "R" LOC = "R12";
 NET "G" LOC = "T12";
 NET "B" LOC = "R11";
 NET "frame_tick" LOC = "P11";
+NET "game_on" LOC = "K13";
 
-NET "lvl_1[3]" LOC = K13;
-NET "lvl_1[2]" LOC = K14;
-NET "lvl_1[1]" LOC = J13;
-NET "lvl_1[0]" LOC = J14;
-NET "lvl_10[3]" LOC = H13;
-NET "lvl_10[2]" LOC = H14;
-NET "lvl_10[1]" LOC = G12;
-NET "lvl_10[0]" LOC = F12;
+#NET "lvl_1[3]" LOC = K13;
+#NET "lvl_1[2]" LOC = K14;
+#NET "lvl_1[1]" LOC = J13;
+#NET "lvl_1[0]" LOC = J14;
+#NET "lvl_10[3]" LOC = H13;
+#NET "lvl_10[2]" LOC = H14;
+#NET "lvl_10[1]" LOC = G12;
+#NET "lvl_10[0]" LOC = F12;
 #Created by Constraints Editor (xc3s200-ft256-4) - 2019/11/26
 NET "clk" TNM_NET = clk;
 TIMESPEC TS_clk = PERIOD "clk" 50 MHz HIGH 50%;
