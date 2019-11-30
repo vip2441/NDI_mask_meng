@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    13:16:17 11/28/2019 
+-- Create Date:    21:31:20 11/29/2019 
 -- Design Name: 
--- Module Name:    sprite_grayscale_ROM - Behavioral 
+-- Module Name:    ROM_lett_num - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -21,16 +21,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity sprite_grayscale_ROM is
+entity ROM_lett_num is
 	Port ( clock, read_enable : in  STD_LOGIC;
-           addr: in  STD_LOGIC_VECTOR (7 downto 0);
+           address_x: in  STD_LOGIC_VECTOR (5 downto 0);
+			  address_y: in  STD_LOGIC_VECTOR (4 downto 0);
            data_out : out  STD_LOGIC_VECTOR (0 to 31));
-end sprite_grayscale_ROM;
+end ROM_lett_num;
 
-architecture Behavioral of sprite_grayscale_ROM is
+architecture Behavioral of ROM_lett_num is
 
-	type ROM_type is array(0 to 255) of std_logic_vector(0 to 31);
-	constant rom : ROM_type := (
+type ROM_type is array(0 to 2047) of std_logic_vector(0 to 31);
+constant rom : ROM_type := (
 	"00000000000000000000000000000000","00000000000000000000000000000000",
 	"01111111111111111111111111111111","11111111111111111111111111111110",
 	"01001111111100111111110011111111","00111111100111111110011111110010",
@@ -159,21 +160,27 @@ architecture Behavioral of sprite_grayscale_ROM is
 	"00101010101010101010101010001010","10101010101010101010101010101010",
 	"01010101010101010101010101010101","01010101010101010101010101010100",
 	"00101010101010101010101010001010","10101010101010101010101010101010",
-	"00000000000000000000000000000000","00000000000000000000000000000000"
+	"00000000000000000000000000000000","00000000000000000000000000000000",
 	--------------------------konec podlahy/zacatek neceho----------------
-	);
+
+
+others => (others => '1')
+);
+
+signal y_x : std_logic_vector(10 downto 0) := (others => '0');
 
 begin
-	
+
+	y_x <= address_y & address_x;
+
 	memory_read:process(clock)
 	begin
 		if(rising_edge(clock)) then
 			if(read_enable = '1') then
-				data_out <= rom(to_integer(unsigned(addr)));
+				data_out <= rom(to_integer(unsigned(y_x)));
 			end if;
 		end if;
 	end process;
-
 
 end Behavioral;
 
