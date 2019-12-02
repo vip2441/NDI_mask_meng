@@ -16,9 +16,12 @@ entity top is
 			  reset: in std_logic := '0';
 			  ack: out std_logic := '0';
 			  
+			  --signal znacici, ze zacala hra
+			  game_on:std_logic := '0'
+			  
 			  --herni informace
-			  lvl_1, lvl_10: in std_logic_vector(3 downto 0)
-		);
+			  --lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
+	);
 end top;
 
 architecture Behavioral of top is
@@ -39,11 +42,13 @@ architecture Behavioral of top is
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
 			  start_pos, end_pos: std_logic_vector(7 downto 0);
+			  move, reset : in  STD_LOGIC;
+			  ack: out std_logic;
 			  
 			  obj_offs_x, obj_offs_y: out std_logic_vector(8 downto 0);
-		--experimentarni signaly
-			  move, reset : in  STD_LOGIC;
-			  ack: out std_logic
+			  
+			  game_on: in std_logic
+			 
 			  );
 	end component;
 
@@ -53,64 +58,72 @@ architecture Behavioral of top is
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
 			  white_dots_en, obj_en: out std_logic;
+			  color: out std_logic_vector(2 downto 0);
 			  
 			  --signaly pro pamet grafickou
+				mem_data: in std_logic_vector(1 downto 0);
 			  mem_read_enable: out std_logic;
 			  mem_add_x: out std_logic_vector(11 downto 0);
-			  mem_add_y: out std_logic_vector(2 downto 0)
+			  mem_add_y: out std_logic_vector(3 downto 0)
 			);
 	end component;
-
+	
 	component graphic_rom is
 		Port ( clock, read_enable : in  STD_LOGIC;
            address_x: in  STD_LOGIC_VECTOR (11 downto 0);
-			  address_y: in  STD_LOGIC_VECTOR (2 downto 0);
-           data_out : out  STD_LOGIC_VECTOR (2 downto 0));
+			  address_y: in  STD_LOGIC_VECTOR (3 downto 0);
+           data_out : out  STD_LOGIC_VECTOR (1 downto 0));
 	end component;
 	
 	component gui_generator is
 		Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
-				 clk : in STD_LOGIC;
-				 lvl_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
-			 	lvl_desitky : in STD_LOGIC_VECTOR (3 downto 0);
-			 	stp_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
-			 	stp_desitky : in STD_LOGIC_VECTOR (3 downto 0);
-			 	address_x : out STD_LOGIC_VECTOR (10 downto 0);
-				address_y : out STD_LOGIC_VECTOR (4 downto 0);
-			 	gui_sel : out STD_LOGIC);
+			 clk : in STD_LOGIC;
+			 lvl_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
+			 lvl_desitky : in STD_LOGIC_VECTOR (3 downto 0);
+			 stp_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
+			 stp_desitky : in STD_LOGIC_VECTOR (3 downto 0);
+			 
+			 --pamet s logem,entrem a rst
+			 mem_re1: out std_logic;
+			 address_x1 : out STD_LOGIC_VECTOR (11 downto 0);
+			 address_y1 : out STD_LOGIC_VECTOR (3 downto 0);
+			 mem_data_1: in std_logic_vector(1 downto 0);
+			 
+			 --pamet s cisly a pismeny
+			 mem_re2: out std_logic;
+			 address_x2 : out STD_LOGIC_VECTOR (5 downto 0);
+			 address_y2 : out STD_LOGIC_VECTOR (4 downto 0);
+			 mem_data_2: in std_logic_vector(0 to 31);
+			 
+			 color: out std_logic_vector(2 downto 0);
+			 gui_sel : out STD_LOGIC);
 	end component;
 
-	component gui_sprite_rom is 
-		Port ( clock, read_enable : in  STD_LOGIC;
-           address_x: in  STD_LOGIC_VECTOR (10 downto 0);
+	component ROM_lett_num is
+	Port ( clock, read_enable : in  STD_LOGIC;
+           address_x: in  STD_LOGIC_VECTOR (5 downto 0);
 			  address_y: in  STD_LOGIC_VECTOR (4 downto 0);
-           data_out : out  STD_LOGIC_VECTOR (2 downto 0));
-	end component;
-	
-	component SRAM_loader is
-		Port ( rst, data_ready, sync, clk : in  STD_LOGIC;
-           read_en, next_sync, nWE, load_complete : out  STD_LOGIC;
-           data_in : in  STD_LOGIC_VECTOR (7 downto 0);
-           data_out : out  STD_LOGIC_VECTOR (15 downto 0);
-           addr : out  STD_LOGIC_VECTOR (17 downto 0));
+           data_out : out  STD_LOGIC_VECTOR (0 to 31));
 	end component;
 
 	--vnitrni signaly pro synchronizaci grafiky
 	signal vid_on: std_logic := '0';
 	signal pxx, pxy: std_logic_vector(10 downto 0) := (others => '0');
-	signal color: std_logic_vector(2 downto 0);
+	signal color: std_logic_vector(2 downto 0);		--signal z multiplexeru do registru
 
 	--signaly pro grafickou pamet
-	signal graphic_mem_addx: std_logic_vector(11 downto 0) := (others => '0');
-	signal graphic_mem_addy: std_logic_vector(2 downto 0) := (others => '0');
-	signal graphic_mem_re: std_logic;
-	signal graphic_mem_data: std_logic_vector(2 downto 0);
+	signal graphic_mem_addx, gui_gen_addx, obj_gen_addx: std_logic_vector(11 downto 0) := (others => '0');
+	signal graphic_mem_addy, gui_gen_addy, obj_gen_addy: std_logic_vector(3 downto 0) := (others => '0');
+	signal graphic_mem_re, gui_gen_mem_re, obj_gen_mem_re: std_logic;
+	signal graphic_mem_data, gui_gen_mem_data, obj_gen_mem_data: std_logic_vector(1 downto 0);
+	
+	
 
 	--offsety grafickych obejktu
 	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
 
 	--signaly pro rizeni generatoru objektu
-	signal selected_object, gui_pic :std_logic_vector(2 downto 0);
+	signal selected_object, obj_pic, gui_pic:std_logic_vector(2 downto 0);
 	
 	signal border_draw_en:std_logic;
 
@@ -120,15 +133,18 @@ architecture Behavioral of top is
 	--signaly vystupniho multiplexeru
 	signal graphics_enable, white_dots_en, gui_en: std_logic;
 
+	signal start_pos: std_logic_vector(7 downto 0) := "10001011";
+	signal end_pos: std_logic_vector(7 downto 0) := "11001011";
+	signal lvl_1, lvl_10, stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
+
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
 
-	--signaly pameti pro vykreslovani gui
-	signal gui_add_x : STD_LOGIC_VECTOR (10 downto 0);
-	signal gui_add_y: STD_LOGIC_VECTOR (4 downto 0);
-	
-	--docasne signaly cisla tahu
-	signal stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
+	--signaly pameti pro vykreslovani gui(pamet pismen a cislic)
+	signal LaN_add_x : STD_LOGIC_VECTOR (5 downto 0);
+	signal LaN_add_y: STD_LOGIC_VECTOR (4 downto 0);
+	signal LaN_re: std_logic;
+	signal LaN_data: std_logic_vector(0 to 31);
 
 begin
 
@@ -170,30 +186,74 @@ begin
 						
 	--vystupni multiplexer grafickych objektu
 	color <= "111" when white_dots_en = '1' else
-				graphic_mem_data when ((graphics_enable = '1') and (white_dots_en = '0')) else
+				obj_pic when ((graphics_enable = '1') and (white_dots_en = '0')) else
 				gui_pic when gui_en = '1' else
-				"000";
+				"000";	
+	
+	process(clk)
+	begin
+		if(rising_edge(clk)) then
+		case(gui_en) is
+			when '0' => 		--gui se nekresli
+				graphic_mem_re <= obj_gen_mem_re;
+				graphic_mem_addx <= obj_gen_addx;
+				graphic_mem_addy <= obj_gen_addy;
+				obj_gen_mem_data <= graphic_mem_data;
+			when '1' =>
+				graphic_mem_re <= gui_gen_mem_re;
+				graphic_mem_addx <= gui_gen_addx;
+				graphic_mem_addy <= gui_gen_addy;
+				gui_gen_mem_data <= graphic_mem_data;
+			when others =>
+				graphic_mem_re <= '0';
+				graphic_mem_addx <= (others => '0');
+				graphic_mem_addy <= (others => '0');
+		end case;
+		end if;
+	end process;
+	
+	level_placement: levels_rom
+		port map(
+			clock => clk,
+		   address => lvl_mem_add,
+         data_out => lvl_mem_data			
+		);
 
 	info_generator: gui_generator
 		port map(
-			clk => clk,
 			pix_x => pxx,
 			pix_y => pxy,
-			gui_sel => gui_en,
+			clk => clk,
+			
 			lvl_jednotky => lvl_1,
 			lvl_desitky => lvl_10,
 			stp_jednotky => stp_1,
 			stp_desitky => stp_10,
-			address_x => gui_add_x,
-			address_y => gui_add_y);
 			
-	info_sprite_rom: gui_sprite_rom
+			mem_re1 => gui_gen_mem_re,
+			address_x1 => gui_gen_addx,
+			address_y1 => gui_gen_addy,
+			mem_data_1 => gui_gen_mem_data,
+			
+			mem_re2 => LaN_re,
+			address_x2 => LaN_add_x,
+			address_y2 => LaN_add_y,
+			mem_data_2 => LaN_data,
+			
+			color => gui_pic,
+			gui_sel => gui_en			
+		);
+			
+		
+	
+	letters_numbers_rom:ROM_lett_num
 		port map(
 			clock => clk,
-			read_enable => gui_en,
-			address_x => gui_add_x,
-			address_y => gui_add_y,
-			data_out => gui_pic);
+			read_enable => LaN_re,
+			address_x => LaN_add_x,
+			address_y => LaN_add_y,
+			data_out => LaN_data		
+		);
 			
 	synchronizer: vga_sync
 		port map(
@@ -213,42 +273,55 @@ begin
 		  pixy_offs => pixy_arena,
 		  inside_pixx_offs => inside_pix_x,
 		  inside_pixy_offs => inside_pix_y,
+		  
 		  mem_add => lvl_mem_add,
 		  mem_data => lvl_mem_data,
+		  
         clock => clk,
 		  move => move,
 		  reset => reset,					--reset automatu zabyvajicim se pohybem
 		  ack => ack,
 		  start_pos => start_pos,
 		  end_pos => end_pos,
+		  
 		  obj_offs_x => gr_offs_x, 
 		  obj_offs_y => gr_offs_y,
+		  
+		  game_on => game_on,
 		  border_draw_en => border_draw_en,
 		  selected_object => selected_object
 		);
-		
+				
 	graphics_generator:object_generator
 		port map(
 			clk => clk,
 			sel => selected_object,
+			
          pixx => pixx_2,
 			pixy => pixy_2,
+			
          offset_x => gr_offs_x,
 			offset_y => gr_offs_y,	
+			
 			white_dots_en => white_dots_en,
 			obj_en => graphics_enable,
-			mem_read_enable => graphic_mem_re,
-			mem_add_x => graphic_mem_addx,
-			mem_add_y => graphic_mem_addy
+			
+			mem_data => obj_gen_mem_data,
+			mem_read_enable => obj_gen_mem_re,
+			mem_add_x => obj_gen_addx,
+			mem_add_y => obj_gen_addy,
+			
+			color => obj_pic
 		);
 		
-	sprite_memory: graphic_rom
+	sprite_rom:graphic_rom
 		port map(
 			clock => clk,
 			read_enable => graphic_mem_re,
-         address_x => graphic_mem_addx,
+			address_x => graphic_mem_addx,
 			address_y => graphic_mem_addy,
-         data_out => graphic_mem_data
+			data_out => graphic_mem_data
 		);
+			
 end Behavioral;
 
