@@ -276,9 +276,9 @@ end process;
 			if(sel_color = '1') then
 			
 				case(mem_data_1) is
-					when "11" => color <= "111";
+					when "11" => color <= "110";
 					when "00" => color <= "000";
-					when "01" => color <= "110";
+					when "01" => color <= "111";
 					when "10" => color <= "100";
 					when others => color <= "000";
 				end case;

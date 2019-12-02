@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity top is
     Port ( clk : in  STD_LOGIC := '0';
            HS,VS,R,G,B, frame_tick : out  STD_LOGIC := '0';
-			  start_pos, end_pos: in std_logic_vector(7 downto 0);
+			  --start_pos, end_pos: in std_logic_vector(7 downto 0);
 			  
 			  --pamet usporadani levelu
 --			  lvl_mem_add: out std_logic_vector(5 downto 0);
@@ -17,10 +17,10 @@ entity top is
 			  ack: out std_logic := '0';
 			  
 			  --signal znacici, ze zacala hra
-			  game_on:std_logic := '0';
+			  game_on:std_logic := '0'
 			  
 			  --herni informace
-			  lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
+			  --lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
 	);
 end top;
 
@@ -142,8 +142,9 @@ architecture Behavioral of top is
 	--signaly vystupniho multiplexeru
 	signal graphics_enable, white_dots_en, gui_en: std_logic;
 
-	--signal start_pos: std_logic_vector(7 downto 0) := "10001011";
-	--signal end_pos: std_logic_vector(7 downto 0) := "11001011";
+	signal start_pos: std_logic_vector(7 downto 0) := "10001011";
+	signal end_pos: std_logic_vector(7 downto 0) := "11001011";
+	signal lvl_1, lvl_10, stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
 
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);

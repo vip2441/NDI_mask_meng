@@ -56,15 +56,15 @@ begin
 				when "00" =>
 					color <= "000";
 				when "10" => 
-					if(sel = "111") then
+					if(sel = "111") then				--objekt hrace
 						color <= "100";
 					else
 						color <= "010";
 					end if;
 				when "01" =>
-					color <= "110";
-				when "11" =>
 					color <= "111";
+				when "11" =>
+					color <= "110";
 				when others =>
 					color <= "000";		--kresli cernou, kdyz nic
 			end case;
