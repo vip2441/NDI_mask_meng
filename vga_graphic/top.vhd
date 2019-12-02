@@ -17,10 +17,10 @@ entity top is
 			  ack: out std_logic := '0';
 			  
 			  --signal znacici, ze zacala hra
-			  game_on:std_logic := '0'
+			  game_on:std_logic := '0';
 			  
 			  --herni informace
-			  --lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
+			  lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
 	);
 end top;
 
@@ -61,7 +61,7 @@ architecture Behavioral of top is
 			  color: out std_logic_vector(2 downto 0);
 			  
 			  --signaly pro pamet grafickou
-				mem_data: in std_logic_vector(1 downto 0);
+			  mem_data: in std_logic_vector(1 downto 0);
 			  mem_read_enable: out std_logic;
 			  mem_add_x: out std_logic_vector(11 downto 0);
 			  mem_add_y: out std_logic_vector(3 downto 0)
@@ -115,9 +115,7 @@ architecture Behavioral of top is
 	signal graphic_mem_addx, gui_gen_addx, obj_gen_addx: std_logic_vector(11 downto 0) := (others => '0');
 	signal graphic_mem_addy, gui_gen_addy, obj_gen_addy: std_logic_vector(3 downto 0) := (others => '0');
 	signal graphic_mem_re, gui_gen_mem_re, obj_gen_mem_re: std_logic;
-	signal graphic_mem_data, gui_gen_mem_data, obj_gen_mem_data: std_logic_vector(1 downto 0);
-	
-	
+	signal graphic_mem_data, gui_gen_mem_data, obj_gen_mem_data: std_logic_vector(1 downto 0);	
 
 	--offsety grafickych obejktu
 	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
@@ -132,10 +130,6 @@ architecture Behavioral of top is
 
 	--signaly vystupniho multiplexeru
 	signal graphics_enable, white_dots_en, gui_en: std_logic;
-
-	signal start_pos: std_logic_vector(7 downto 0) := "10001011";
-	signal end_pos: std_logic_vector(7 downto 0) := "11001011";
-	signal lvl_1, lvl_10, stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
 
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
@@ -212,13 +206,6 @@ begin
 		end if;
 	end process;
 	
-	level_placement: levels_rom
-		port map(
-			clock => clk,
-		   address => lvl_mem_add,
-         data_out => lvl_mem_data			
-		);
-
 	info_generator: gui_generator
 		port map(
 			pix_x => pxx,
