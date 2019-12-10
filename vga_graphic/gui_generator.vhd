@@ -42,7 +42,7 @@ Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
 			 mem_data_2: in std_logic_vector(0 to 31);
 			 
 			 color: out std_logic_vector(2 downto 0);
-			 gui_sel : out STD_LOGIC);
+			 gui_sel, white_dots_en : out STD_LOGIC);
 end gui_generator;
 
 architecture Behavioral of gui_generator is
@@ -66,197 +66,263 @@ begin
 	if(rising_edge(clk)) then
 		address_x1 <= std_logic_vector(to_unsigned((cntx mod 64)*64 + (cnty mod 64),12));		--nacitani sprajtu 64x64
 		gui_sel <= '1';
-		mem_re1 <= '1';
+		mem_re1 <= '0';
 		mem_re2 <= '1';
 		sel_color <= '0';
 		sel_baw <= '1';
 		
-		--VYKRESLENI TLACITKA ENTER--
-		if((cntx >= 128 and cntx <=192) and (cnty >= 384 and cnty <= 447)) then
-			address_y1 <= "1110";
-			sel_color <= '1';
-			sel_baw <= '0';
-			
-		--VYKRESLENI TLACITKA RESET--
-		elsif((cntx >= 128 and cntx <=192) and (cnty >= 448 and cnty <= 511)) then
-			address_y1 <= "1111";
-			sel_color <= '1';
-			sel_baw <= '0';
-			
 		--VYKRESLENI LOGA--
-		elsif((cntx >= 0 and cntx <=63) and (cnty >= 0 and cnty <= 63)) then
+		if((cntx >= 0 and cntx <=63) and (cnty >= 0 and cnty <= 63)) then
 			address_y1 <= "0101";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
 		elsif((cntx >= 0 and cntx <=63) and (cnty >= 64 and cnty <= 127)) then
 			address_y1 <= "0110";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
 		elsif((cntx >= 0 and cntx <=63) and (cnty >= 128 and cnty <= 191)) then
 			address_y1 <= "0111";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 				
 		elsif((cntx >= 64 and cntx <=127) and (cnty >= 0 and cnty <= 63)) then
 			address_y1 <= "1000";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
 		elsif((cntx >= 64 and cntx <=127) and (cnty >= 64 and cnty <= 127)) then
 			address_y1 <= "1001";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
 		elsif((cntx >= 64 and cntx <=127) and (cnty >= 128 and cnty <= 191)) then
 			address_y1 <= "1010";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
 		elsif((cntx >= 128 and cntx <=191) and (cnty >= 0 and cnty <= 63)) then
 			address_y1 <= "1011";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
 		elsif((cntx >= 128 and cntx <=191) and (cnty >= 64 and cnty <= 127)) then
 			address_y1 <= "1100";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
 		elsif((cntx >= 128 and cntx <=191) and (cnty >= 128 and cnty <= 191)) then
 			address_y1 <= "1101";
 			sel_color <= '1';
 			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
 			
-		--VYKRESLENI NAPISU OVLADANI
-		elsif((cntx >= 0 and cntx <=31) and (cnty >= 192 and cnty <= 255)) then
+		--VYKRESLENI NAPISU CNTRL:
+		elsif((cntx >= 0 and cntx <=31) and (cnty >= 192 and cnty <= 255)) then				--C
 			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
 			address_y2 <= "00000";
-		elsif((cntx >= 32 and cntx <=63) and (cnty >= 192 and cnty <= 255)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00011";
-		elsif((cntx >= 64 and cntx <=95) and (cnty >= 192 and cnty <= 255)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00111";
-		elsif((cntx >= 96 and cntx <=127) and (cnty >= 192 and cnty <= 255)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00101";
-		elsif((cntx >= 128 and cntx <=159) and (cnty >= 192 and cnty <= 255)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00010";
-		elsif((cntx >= 160 and cntx <=191) and (cnty >= 192 and cnty <= 255)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "01001";
-			
-		--VYKRESLENI NAPISU LEVEL--	
-		elsif((cntx >= 0 and cntx <=31) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64),6));
-			address_y2 <= "00010";
-		elsif((cntx >= 32 and cntx <=63) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00001";
-		elsif((cntx >= 64 and cntx <=95) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "01000";
-		elsif((cntx >= 96 and cntx <=127) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00001";
-		elsif((cntx >= 128 and cntx <=159) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00010";
-		elsif((cntx >= 160 and cntx <=191) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "01001";
-			
-		--VYKRESLENI LEVEL COUNTERU--
-		elsif((cntx >= 64 and cntx <=95) and (cnty >= 384 and cnty <= 447)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			case act_lvl_10 is
-				when 0 => address_y2 <= "10011";
-				when 1 => address_y2 <= "01010";
-				when 2 => address_y2 <= "01011";
-				when 3 => address_y2 <= "01100";
-				when 4 => address_y2 <= "01101";
-				when 5 => address_y2 <= "01110";
-				when 6 => address_y2 <= "01111";
-				when 7 => address_y2 <= "10000";
-				when 8 => address_y2 <= "10001";
-				when 9 => address_y2 <= "10010";
-				when others => address_y2 <= "10010";
-			end case;
-			
-		elsif((cntx >= 96 and cntx <=127) and (cnty >= 384 and cnty <= 447)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			case act_lvl_1 is
-				when 0 => address_y2 <= "10011";
-				when 1 => address_y2 <= "01010";
-				when 2 => address_y2 <= "01011";
-				when 3 => address_y2 <= "01100";
-				when 4 => address_y2 <= "01101";
-				when 5 => address_y2 <= "01110";
-				when 6 => address_y2 <= "01111";
-				when 7 => address_y2 <= "10000";
-				when 8 => address_y2 <= "10001";
-				when 9 => address_y2 <= "10010";
-				when others => address_y2 <= "10010";
-			end case;
-			
-		--VYKRESLENI NAPISU STEPS--
-		elsif((cntx >= 480 and cntx <=511) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00110";
-		elsif((cntx >= 512 and cntx <=543) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00111";
-			
-		elsif((cntx >= 544 and cntx <=575) and (cnty >= 512 and cnty <= 575)) then
-			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
-			address_y2 <= "00001";
-			
-		elsif((cntx >= 576 and cntx <=607) and (cnty >= 512 and cnty <= 575)) then
+		elsif((cntx >= 32 and cntx <=63) and (cnty >= 192 and cnty <= 255)) then			--N
 			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
 			address_y2 <= "00100";
-			
-		elsif((cntx >= 608 and cntx <=639) and (cnty >= 512 and cnty <= 575)) then
+		elsif((cntx >= 64 and cntx <=95) and (cnty >= 192 and cnty <= 255)) then			--T
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "01000";
+		elsif((cntx >= 96 and cntx <=127) and (cnty >= 192 and cnty <= 255)) then			--R
 			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
 			address_y2 <= "00110";
+		elsif((cntx >= 128 and cntx <=159) and (cnty >= 192 and cnty <= 255)) then			--L
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00011";
+		elsif((cntx >= 160 and cntx <=191) and (cnty >= 192 and cnty <= 255)) then			--:
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "01011";
 			
-		elsif((cntx >= 640 and cntx <=671) and (cnty >= 512 and cnty <= 575)) then
+		--VYKRESLENI TLACITKA ESCAPE--
+--		elsif((cntx >= 0 and cntx < 32) and (cnty >= 256 and cnty < 320)) then
+--			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+--			address_y2 <= "10110";
+
+--		elsif((cntx >= 32 and cntx < 64) and (cnty >= 256 and cnty < 320)) then
+--			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+--			address_y2 <= "10111";
+
+		--VYKRESLENI TLACITKA RESET--
+--		elsif((cntx >= 128 and cntx < 160) and (cnty >= 256 and cnty < 320)) then
+--			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+--			address_y2 <= "11000";
+
+--		elsif((cntx >= 160 and cntx < 192) and (cnty >= 256 and cnty < 320)) then
+--			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+--			address_y2 <= "11001";			
+			
+		--SIPKY---
+		elsif((cntx >= 64 and cntx < 128) and (cnty >= 256 and cnty < 320)) then				--sipka nahoru
+			address_y1 <= "1111";
+			sel_color <= '1';
+			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
+			
+		elsif((cntx >= 0 and cntx < 64) and (cnty >= 320 and cnty < 384)) then				--sipka doleva
+			address_x1 <= std_logic_vector(to_unsigned((cntx mod 64) + (cnty mod 64)*64,12));
+			address_y1 <= "1111";
+			sel_color <= '1';
+			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
+		
+		elsif((cntx >= 128 and cntx < 192) and (cnty >= 320 and cnty < 384)) then				--sipka doprava
+			address_x1 <= std_logic_vector(to_unsigned((63-(cntx mod 64)) + (cnty mod 64)*64,12));
+			address_y1 <= "1111";
+			sel_color <= '1';
+			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';
+			
+		elsif((cntx >= 64 and cntx < 128) and (cnty >= 320 and cnty < 384)) then				--sipka dolu
+			address_x1 <= std_logic_vector(to_unsigned(64*(cntx mod 64) + (63 -(cnty mod 64)),12));
+			address_y1 <= "1111";
+			sel_color <= '1';
+			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';		
+			
+		--VYKRESLENI NAPISU LEVEL--	
+		elsif((cntx >= 0 and cntx <=31) and (cnty >= 512 and cnty <= 575)) then				--L
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64),6));
+			address_y2 <= "00011";
+		elsif((cntx >= 32 and cntx <=63) and (cnty >= 512 and cnty <= 575)) then			--E
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00001";
+		elsif((cntx >= 64 and cntx <=95) and (cnty >= 512 and cnty <= 575)) then			--V
 			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
 			address_y2 <= "01001";
+		elsif((cntx >= 96 and cntx <=127) and (cnty >= 512 and cnty <= 575)) then			--E
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00001";
+		elsif((cntx >= 128 and cntx <=159) and (cnty >= 512 and cnty <= 575)) then			--L
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00011";
+		elsif((cntx >= 160 and cntx <=191) and (cnty >= 512 and cnty <= 575)) then			--:
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "01011";
+			
+		--VYKRESLENI LEVEL COUNTERU--
+		elsif((cntx >= 192 and cntx < 224) and (cnty >= 512 and cnty < 576)) then
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			case act_lvl_10 is
+				when 0 => address_y2 <= "10101";
+				when 1 => address_y2 <= "01100";
+				when 2 => address_y2 <= "01101";
+				when 3 => address_y2 <= "01110";
+				when 4 => address_y2 <= "01111";
+				when 5 => address_y2 <= "10000";
+				when 6 => address_y2 <= "10001";
+				when 7 => address_y2 <= "10010";
+				when 8 => address_y2 <= "10011";
+				when 9 => address_y2 <= "10100";
+				when others => address_y2 <= "10101";
+			end case;
+			
+		elsif((cntx >= 224 and cntx < 256) and (cnty >= 512 and cnty < 576)) then
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			case act_lvl_1 is
+				when 0 => address_y2 <= "10101";
+				when 1 => address_y2 <= "01100";
+				when 2 => address_y2 <= "01101";
+				when 3 => address_y2 <= "01110";
+				when 4 => address_y2 <= "01111";
+				when 5 => address_y2 <= "10000";
+				when 6 => address_y2 <= "10001";
+				when 7 => address_y2 <= "10010";
+				when 8 => address_y2 <= "10011";
+				when 9 => address_y2 <= "10100";
+				when others => address_y2 <= "10101";
+			end case;
+			
+		--VYKRESLENI TLACITKA ENTER--
+		elsif((cntx >= 288 and cntx < 352) and (cnty >= 512 and cnty < 576)) then
+			address_x1 <= std_logic_vector(to_unsigned(((cntx - 32) mod 64)*64 + (cnty mod 64),12));
+			address_y1 <= "1110";
+			sel_color <= '1';
+			sel_baw <= '0';
+			mem_re1 <= '1';
+			mem_re2 <= '0';			
+			
+		--VYKRESLENI NAPISU STEPS--
+		elsif((cntx >= 480 and cntx <=511) and (cnty >= 512 and cnty <= 575)) then			--S
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00111";
+			
+		elsif((cntx >= 512 and cntx <=543) and (cnty >= 512 and cnty <= 575)) then			--T
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "01000";
+			
+		elsif((cntx >= 544 and cntx <=575) and (cnty >= 512 and cnty <= 575)) then			--E
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00001";
+			
+		elsif((cntx >= 576 and cntx <=607) and (cnty >= 512 and cnty <= 575)) then			--P
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00101";
+			
+		elsif((cntx >= 608 and cntx <=639) and (cnty >= 512 and cnty <= 575)) then			--S
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "00111";
+			
+		elsif((cntx >= 640 and cntx <=671) and (cnty >= 512 and cnty <= 575)) then			--:
+			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
+			address_y2 <= "01011";
 			
 		--VYKRESLENI COUNTERU TAHU--	
-		elsif((cntx >= 64 and cntx <=95) and (cnty >= 448 and cnty <= 511)) then
+		elsif((cntx >= 672 and cntx < 704) and (cnty >= 512 and cnty < 576)) then
 			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
 			case act_stp_10 is
-				when 0 => address_y2 <= "10011";
-				when 1 => address_y2 <= "01010";
-				when 2 => address_y2 <= "01011";
-				when 3 => address_y2 <= "01100";
-				when 4 => address_y2 <= "01101";
-				when 5 => address_y2 <= "01110";
-				when 6 => address_y2 <= "01111";
-				when 7 => address_y2 <= "10000";
-				when 8 => address_y2 <= "10001";
-				when 9 => address_y2 <= "10010";
-				when others => address_y2 <= "10010";
+				when 0 => address_y2 <= "10101";
+				when 1 => address_y2 <= "01100";
+				when 2 => address_y2 <= "01101";
+				when 3 => address_y2 <= "01110";
+				when 4 => address_y2 <= "01111";
+				when 5 => address_y2 <= "10000";
+				when 6 => address_y2 <= "10001";
+				when 7 => address_y2 <= "10010";
+				when 8 => address_y2 <= "10011";
+				when 9 => address_y2 <= "10100";
+				when others => address_y2 <= "10101";
 			end case;
 
-		elsif((cntx >= 96 and cntx <=127) and (cnty >= 448 and cnty <= 511)) then
+		elsif((cntx >= 704 and cntx < 736) and (cnty >= 512 and cnty < 576)) then
 			address_x2 <= std_logic_vector(to_unsigned((cnty mod 64) ,6));
 			case act_stp_1 is
-				when 0 => address_y2 <= "10011";
-				when 1 => address_y2 <= "01010";
-				when 2 => address_y2 <= "01011";
-				when 3 => address_y2 <= "01100";
-				when 4 => address_y2 <= "01101";
-				when 5 => address_y2 <= "01110";
-				when 6 => address_y2 <= "01111";
-				when 7 => address_y2 <= "10000";
-				when 8 => address_y2 <= "10001";
-				when 9 => address_y2 <= "10010";
-				when others => address_y2 <= "10010";
+				when 0 => address_y2 <= "10101";
+				when 1 => address_y2 <= "01100";
+				when 2 => address_y2 <= "01101";
+				when 3 => address_y2 <= "01110";
+				when 4 => address_y2 <= "01111";
+				when 5 => address_y2 <= "10000";
+				when 6 => address_y2 <= "10001";
+				when 7 => address_y2 <= "10010";
+				when 8 => address_y2 <= "10011";
+				when 9 => address_y2 <= "10100";
+				when others => address_y2 <= "10101";
 			end case;		
 			
 		else
@@ -273,24 +339,33 @@ end process;
 		variable temp: std_logic := '0';
 	begin
 		if(rising_edge(clk)) then
-			if(sel_color = '1') then
+			white_dots_en <= '0';
+			if((cntx = 0) or (cntx = 798) or (cnty = 0) or (cnty = 599))then
+				color <= "111";
+				white_dots_en <= '1';
 			
-				case(mem_data_1) is
-					when "11" => color <= "110";
-					when "00" => color <= "000";
-					when "01" => color <= "111";
-					when "10" => color <= "100";
-					when others => color <= "000";
-				end case;
+			elsif(cntx) then
+				if(sel_color = '1') then
+			
+					case(mem_data_1) is
+						when "11" => color <= "110";
+						when "00" => color <= "000";
+						when "01" => color <= "111";
+						when "10" => color <= "100";
+						when others => color <= "000";
+					end case;
 				
-			elsif(sel_baw = '1') then
-				temp := mem_data_2(cntx mod 32);
+				elsif(sel_baw = '1') then
+					temp := mem_data_2(cntx mod 32);
 				
-				case(temp) is
-					when '0' => color <= "000";
-					when '1' => color <= "111";
-					when others => color <= "000";
-				end case;
+					case(temp) is
+						when '0' => color <= "000";
+						when '1' => color <= "111";
+						when others => color <= "000";
+					end case;
+				end if;
+			else
+				color <= "000";
 			end if;				
 		end if;
 	end process;

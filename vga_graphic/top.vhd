@@ -4,7 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity top is
     Port ( clk : in  STD_LOGIC := '0';
-           HS,VS,R,G,B, frame_tick : out  STD_LOGIC := '0';
+           HS,VS,R,G,B: out  STD_LOGIC := '0';
 			  --start_pos, end_pos: in std_logic_vector(7 downto 0);
 			  
 			  --pamet usporadani levelu
@@ -37,7 +37,7 @@ architecture Behavioral of top is
 			  pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
-           clock : in  STD_LOGIC;
+           clock, clk_div : in  STD_LOGIC;
 			  border_draw_en: out  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
@@ -57,7 +57,8 @@ architecture Behavioral of top is
 			  sel: in std_logic_vector(2 downto 0);
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
-			  white_dots_en, obj_en: out std_logic;
+			  --white_dots_en, 
+			  obj_en: out std_logic;
 			  color: out std_logic_vector(2 downto 0);
 			  
 			  --signaly pro pamet grafickou
@@ -69,10 +70,11 @@ architecture Behavioral of top is
 	end component;
 	
 	component graphic_rom is
-		Port ( clock, read_enable : in  STD_LOGIC;
-           address_x: in  STD_LOGIC_VECTOR (11 downto 0);
-			  address_y: in  STD_LOGIC_VECTOR (3 downto 0);
-           data_out : out  STD_LOGIC_VECTOR (1 downto 0));
+    Port ( clock, we, en: in  STD_LOGIC;
+				data_in: in std_logic_vector(1 downto 0);
+           address_x1, address_x2: in  STD_LOGIC_VECTOR (11 downto 0);
+			  address_y1, address_y2: in  STD_LOGIC_VECTOR (3 downto 0);
+           data_out1, data_out2 : out  STD_LOGIC_VECTOR (1 downto 0));
 	end component;
 	
 	component levels_rom is
@@ -105,7 +107,7 @@ architecture Behavioral of top is
 			 mem_data_2: in std_logic_vector(0 to 31);
 			 
 			 color: out std_logic_vector(2 downto 0);
-			 gui_sel : out STD_LOGIC);
+			 gui_sel, white_dots_en : out STD_LOGIC);
 	end component;
 
 	component ROM_lett_num is
@@ -116,17 +118,15 @@ architecture Behavioral of top is
 	end component;
 
 	--vnitrni signaly pro synchronizaci grafiky
-	signal vid_on: std_logic := '0';
+	signal vid_on, frame_tick: std_logic := '0';
 	signal pxx, pxy: std_logic_vector(10 downto 0) := (others => '0');
 	signal color: std_logic_vector(2 downto 0);		--signal z multiplexeru do registru
 
 	--signaly pro grafickou pamet
-	signal graphic_mem_addx, gui_gen_addx, obj_gen_addx: std_logic_vector(11 downto 0) := (others => '0');
-	signal graphic_mem_addy, gui_gen_addy, obj_gen_addy: std_logic_vector(3 downto 0) := (others => '0');
+	signal gui_gen_addx, obj_gen_addx: std_logic_vector(11 downto 0) := (others => '0');
+	signal gui_gen_addy, obj_gen_addy: std_logic_vector(3 downto 0) := (others => '0');
 	signal graphic_mem_re, gui_gen_mem_re, obj_gen_mem_re: std_logic;
-	signal graphic_mem_data, gui_gen_mem_data, obj_gen_mem_data: std_logic_vector(1 downto 0);
-	
-	
+	signal gui_gen_mem_data, obj_gen_mem_data: std_logic_vector(1 downto 0);
 
 	--offsety grafickych obejktu
 	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
@@ -141,10 +141,10 @@ architecture Behavioral of top is
 
 	--signaly vystupniho multiplexeru
 	signal graphics_enable, white_dots_en, gui_en: std_logic;
-
-	signal start_pos: std_logic_vector(7 downto 0) := "10001011";
-	signal end_pos: std_logic_vector(7 downto 0) := "11001011";
-	signal lvl_1, lvl_10, stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
+	
+	signal start_pos: std_logic_vector(7 downto 0) := "10010111";
+	signal end_pos: std_logic_vector(7 downto 0) := "10000111";
+	constant lvl_1, lvl_10, stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
 
 	--signaly zpozdovaaci linky
 	signal pixx_1, pixx_2, pixy_1, pixy_2: std_logic_vector(10 downto 0);
@@ -205,18 +205,10 @@ begin
 		case(gui_en) is
 			when '0' => 		--gui se nekresli
 				graphic_mem_re <= obj_gen_mem_re;
-				graphic_mem_addx <= obj_gen_addx;
-				graphic_mem_addy <= obj_gen_addy;
-				obj_gen_mem_data <= graphic_mem_data;
 			when '1' =>
 				graphic_mem_re <= gui_gen_mem_re;
-				graphic_mem_addx <= gui_gen_addx;
-				graphic_mem_addy <= gui_gen_addy;
-				gui_gen_mem_data <= graphic_mem_data;
 			when others =>
 				graphic_mem_re <= '0';
-				graphic_mem_addx <= (others => '0');
-				graphic_mem_addy <= (others => '0');
 		end case;
 		end if;
 	end process;
@@ -250,7 +242,8 @@ begin
 			mem_data_2 => LaN_data,
 			
 			color => gui_pic,
-			gui_sel => gui_en			
+			gui_sel => gui_en,
+			white_dots_en => white_dots_en
 		);
 			
 		
@@ -287,6 +280,7 @@ begin
 		  mem_data => lvl_mem_data,
 		  
         clock => clk,
+		  clk_div => frame_tick,
 		  move => move,
 		  reset => reset,					--reset automatu zabyvajicim se pohybem
 		  ack => ack,
@@ -310,9 +304,9 @@ begin
 			pixy => pixy_2,
 			
          offset_x => gr_offs_x,
-			offset_y => gr_offs_y,	
+			offset_y => gr_offs_y,
 			
-			white_dots_en => white_dots_en,
+			--white_dots_en => white_dots_en,
 			obj_en => graphics_enable,
 			
 			mem_data => obj_gen_mem_data,
@@ -326,10 +320,15 @@ begin
 	sprite_rom:graphic_rom
 		port map(
 			clock => clk,
-			read_enable => graphic_mem_re,
-			address_x => graphic_mem_addx,
-			address_y => graphic_mem_addy,
-			data_out => graphic_mem_data
+			en => graphic_mem_re,
+			we => '0',
+			data_in => "00",
+			address_x1 => obj_gen_addx,
+			address_y1 => obj_gen_addy,
+			data_out1 => obj_gen_mem_data,
+			address_x2 => gui_gen_addx,
+			address_y2 => gui_gen_addy,
+			data_out2 => gui_gen_mem_data
 		);
 			
 end Behavioral;

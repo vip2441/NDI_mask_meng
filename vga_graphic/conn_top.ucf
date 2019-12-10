@@ -1,5 +1,5 @@
 NET "clk" LOC = "T9";
-NET "move" LOC = "L13";
+NET "move" LOC = "K14";
 NET "reset" LOC = "L14";
 NET "ack" LOC = "P12";
 NET "HS" LOC = "R9";
@@ -7,7 +7,6 @@ NET "VS" LOC = "T10";
 NET "R" LOC = "R12";
 NET "G" LOC = "T12";
 NET "B" LOC = "R11";
-NET "frame_tick" LOC = "P11";
 NET "game_on" LOC = "K13";
 
 #NET "lvl_1[3]" LOC = K13;
