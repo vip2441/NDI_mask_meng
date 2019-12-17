@@ -20,7 +20,7 @@ entity gui_decoder is
 			 mem_data_2: in std_logic_vector(0 to 31);
 			 
 			 color: out std_logic_vector(2 downto 0);
-			 gui_en, white_dots_en : out STD_LOGIC
+			 gui_en: out STD_LOGIC
 			);
 end gui_decoder;
 
@@ -30,15 +30,14 @@ architecture Behavioral of gui_decoder is
 	signal sel_color, sel_baw: std_logic := '0';				--cteni z barevnych nebo cernobilych sprajtu
 
 begin
-
 	cntx <= to_integer(unsigned(pix_x));
 	cnty <= to_integer(unsigned(pix_y));
 
 	process(clk)
 	begin
 		if(rising_edge(clk)) then
-			
-			address_x1 <= std_logic_vector(to_unsigned((cntx mod 64)*64 + (cnty mod 64),12));		--nacitani sprajtu 64x64
+		
+			address_x1 <= std_logic_vector(to_unsigned(((cntx + 4) mod 64)*64 + (cnty mod 64),12));		--nacitani sprajtu 64x64
 			gui_en <= '1';
 			sel_color <= '1';
 			mem_re1 <= '1';
@@ -118,13 +117,8 @@ begin
 		variable temp: std_logic := '0';
 	begin
 		if(rising_edge(clk)) then
-			white_dots_en <= '0';
-			if((cntx = 0) or (cntx = 798) or (cnty = 0) or (cnty = 599))then
-				color <= "111";
-				white_dots_en <= '1';
 			
-			elsif(sel_color = '1') then
-				
+			if(sel_color = '1') then				
 				case(mem_data_1) is
 					when "11" => color <= "110";
 					when "00" => color <= "000";
@@ -141,7 +135,7 @@ begin
 					when '1' => color <= "111";
 					when others => color <= "000";
 				end case;
-			else
+			else				
 				color <= "000";
 			end if;				
 		end if;

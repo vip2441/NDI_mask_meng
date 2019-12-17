@@ -23,7 +23,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity gui_generator is
 Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
-			 clk, game_on : in STD_LOGIC;
+			 clk, game_on, finish : in STD_LOGIC;
 			 lvl_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
 			 lvl_desitky : in STD_LOGIC_VECTOR (3 downto 0);
 			 stp_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
@@ -37,6 +37,8 @@ architecture Behavioral of gui_generator is
 
 	signal cntx, cnty: natural range 0 to 1600 := 0;
 	signal act_lvl_1, act_lvl_10, act_stp_1, act_stp_10 : natural range 0 to 100 := 0;
+	
+	signal fin_cnt: natural range 0 to 35000000 := 0;
 
 begin
 
@@ -51,6 +53,8 @@ begin
 	process(clk, cntx, cnty)
 	begin
 		if(rising_edge(clk)) then
+			
+			fin_cnt <= fin_cnt + 1;
 			
 			--VYKRESLENI LOGA--
 			if((cntx >= 0 and cntx < 64) and (cnty >= 0 and cnty < 64)) then
@@ -112,6 +116,20 @@ begin
 				
 			elsif((cntx >= 64 and cntx < 128) and (cnty >= 320 and cnty < 384)) then				--sipka dolu
 				obj_sel <= "101010";		
+			
+			--NAPIS WINNER--
+			elsif((cntx >= 0 and cntx <=31) and (cnty >= 448 and cnty <= 511) and (finish = '1') and (fin_cnt >= 17500000)) then			--W
+				obj_sel <= "001010";
+			elsif((cntx >= 32 and cntx <=63) and (cnty >= 448 and cnty <= 511) and (finish = '1') and (fin_cnt >= 17500000)) then		--I
+				obj_sel <= "000010";
+			elsif((cntx >= 64 and cntx <=95) and (cnty >= 448	and cnty <= 511) and (finish = '1') and (fin_cnt >= 17500000)) then		--N
+				obj_sel <= "000100";
+			elsif((cntx >= 96 and cntx <=127) and (cnty >= 448 and cnty <= 511) and (finish = '1') and (fin_cnt >= 17500000)) then		--N
+				obj_sel <= "000100";
+			elsif((cntx >= 128 and cntx <=159) and (cnty >= 448 and cnty <= 511) and (finish = '1') and (fin_cnt >= 17500000)) then		--E
+				obj_sel <= "000001";
+			elsif((cntx >= 160 and cntx <=191) and (cnty >= 448 and cnty <= 511) and (finish = '1') and (fin_cnt >= 17500000)) then		--R
+				obj_sel <= "000110";
 				
 			--VYKRESLENI NAPISU LEVEL--	
 			elsif((cntx >= 0 and cntx <=31) and (cnty >= 512 and cnty <= 575)) then				--L

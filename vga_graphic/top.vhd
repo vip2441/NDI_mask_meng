@@ -12,12 +12,12 @@ entity top is
 --			  lvl_mem_data: in std_logic_vector(2 downto 0);
 			  
 			  --signaly pro pohyb
-			  move: in std_logic := '0';
-			  reset: in std_logic := '0';
-			  ack: out std_logic := '0';
+			  move: in std_logic;
+			  reset: in std_logic;
+			  ack: out std_logic;
 			  
 			  --signal znacici, ze zacala hra
-			  game_on:std_logic := '0'
+			  game_on, finish:std_logic := '0'
 			  
 			  --herni informace
 			  --lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
@@ -91,7 +91,7 @@ architecture Behavioral of top is
 	
 	component gui_generator is
 		Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
-			 clk, game_on : in STD_LOGIC;
+			 clk, game_on, finish : in STD_LOGIC;
 			 lvl_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
 			 lvl_desitky : in STD_LOGIC_VECTOR (3 downto 0);
 			 stp_jednotky : in STD_LOGIC_VECTOR (3 downto 0);
@@ -119,8 +119,15 @@ architecture Behavioral of top is
 			 mem_data_2: in std_logic_vector(0 to 31);
 			 
 			 color: out std_logic_vector(2 downto 0);
-			 gui_en, white_dots_en : out STD_LOGIC
+			 gui_en : out STD_LOGIC
 			);
+	end component;
+	
+	component arb_obj_gen is
+    Port ( pix_x,pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
+			  clk: in std_logic;
+           color : out  STD_LOGIC_VECTOR (2 downto 0);
+           en : out  STD_LOGIC);
 	end component;
 
 	component ROM_lett_num is
@@ -145,25 +152,21 @@ architecture Behavioral of top is
 	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
 
 	--signaly pro rizeni generatoru objektu
-	signal selected_object, obj_pic, gui_pic:std_logic_vector(2 downto 0);
+	signal selected_object, obj_pic, gui_pic, white_frame:std_logic_vector(2 downto 0);
 
 	--signaly pixelu s offsetem
 	signal pixx_arena, pixy_arena: std_logic_vector(10 downto 0) := (others => '0');
 
 	--signaly vystupniho multiplexeru
-	signal graphics_enable, white_dots_en, gui_en: std_logic;
+	signal graphics_enable, arb_gen_en, gui_en: std_logic;
 	
 	signal start_pos: std_logic_vector(7 downto 0) := "10010111";
 	signal end_pos: std_logic_vector(7 downto 0) := "10000111";
 	constant lvl_1, lvl_10, stp_1, stp_10: std_logic_vector(3 downto 0) := "0000";
 
 	--signaly zpozdovaaci linky
-	signal pixx_1, pixx_2
---	, pixy_1, pixy_2
-: std_logic_vector(10 downto 0);
-	signal pixx_3, pixx_4, pixx_5
-	--, pixy_3, pixy_4, pixy_5
-	: std_logic_vector(10 downto 0);
+	signal pixx_1, pixx_2: std_logic_vector(10 downto 0);
+	signal pixx_3, pixx_4, pixx_5: std_logic_vector(10 downto 0);
 	
 	--signaly pameti pro vykreslovani gui(pamet pismen a cislic)
 	signal LaN_add_x : STD_LOGIC_VECTOR (5 downto 0);
@@ -208,8 +211,8 @@ begin
 	end process;
 	
 	--vystupni multiplexer grafickych objektu
-	color <= "111" when white_dots_en = '1' else
-				obj_pic when ((graphics_enable = '1') and (white_dots_en = '0')) else
+	color <= white_frame when arb_gen_en = '1' else
+				obj_pic when ((graphics_enable = '1') and (arb_gen_en = '0')) else
 				gui_pic when gui_en = '1' else
 				"000";	
 	
@@ -240,6 +243,7 @@ begin
 			pix_y => pxy,
 			clk => clk,
 			game_on => game_on,
+			finish => finish,
 			
 			lvl_jednotky => lvl_1,
 			lvl_desitky => lvl_10,
@@ -267,8 +271,7 @@ begin
 			mem_data_2 => LaN_data,
 			
 			color => gui_pic,
-			gui_en => gui_en,
-			white_dots_en => white_dots_en
+			gui_en => gui_en
 		);
 	
 	letters_numbers_rom:ROM_lett_num
@@ -333,6 +336,15 @@ begin
 			mem_add_y => obj_gen_addy,
 			
 			color => obj_pic
+		);
+		
+	draw_white_frame: arb_obj_gen
+		port map(
+			pix_x => pxx,
+			pix_y => pxy,
+			clk => clk,
+         color => white_frame,
+			en => arb_gen_en		
 		);
 		
 	sprite_rom:graphic_rom

@@ -76,7 +76,6 @@ begin
 		if(rising_edge(clk)) then
 			mem_read_enable <= '1';		
 			mem_add_x <= std_logic_vector(to_unsigned((((cntx - offsx + 1) mod 64)*64 + ((cnty - offsy) mod 64)),12));
-			--mem_add_x <= std_logic_vector(to_unsigned(((((cnty - offsy) mod 64)*2) + (((cntx - offsx) mod 64)/32)) ,7)); --vybere vzdy polovinu radku
 			obj_en <= '1';
 			
 		if(sel = "101") then			--STENA

@@ -160,7 +160,7 @@ begin
 						obj_offs_x <= std_logic_vector(to_unsigned(mov_offs_x, 9));
 						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 9));
 							
-						if(start_pos(1 downto 0) = "11" or end_pos(1 downto 0) = "11") then  --posouvany objekt je hrac
+						if(start_pos(0) = '1' or end_pos(0) = '1') then  --posouvany objekt je hrac
 							mem_add <= (others => '1');
 							selected_object <= "111";
 						else					--posouvany objekt je kamen, koncova hodnota 10,01 nebo 00
@@ -170,9 +170,14 @@ begin
 						
 					elsif((inside_area_count_x >= position_start_x) and (inside_area_count_x < (64 + position_start_x)) 
 								and(inside_area_count_y >= (position_start_y)) and (inside_area_count_y < (64 + position_start_y)))then					--kdyz se nachazi na pocatecni pozici objektu
-							mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+						
+						mem_add <= std_logic_vector(to_unsigned(row + column,6));
+						
+						if(start_pos(1) = '0' or end_pos(1) = '0') then					--prekresluje pocatecni pozici podlahou							
 							selected_object <= "000";
-							
+						else						--na pocatecni pozici hybaneho objektu byl cil
+							selected_object <= "011";
+						end if;
 					else						--kdyz se nachazi vsude jinde
 						mem_add <= std_logic_vector(to_unsigned(row + column,6));
 						selected_object <= mem_data;							
