@@ -105,7 +105,8 @@ begin
     variable radek_old      : unsigned (2 downto 0)   := (others => '0');
 
     -- id bloku ktory sa hybe pre grafiku
-    variable pohyb_blok     : unsigned (1 downto 0) := c_pohyb_hrc;
+    variable pohyb_blok     : std_logic := c_pohyb_hrc;
+    variable pohyb_maska    : std_logic := c_maskuj_zem;
 
     variable addr_ram_v     : unsigned (5 downto 0) := (others => '0');
     variable addr_ram_v_old : unsigned (5 downto 0) := (others => '0');
@@ -141,6 +142,7 @@ begin
         end_x           := end_x;
         end_y           := end_y;
         pohyb_blok      := pohyb_blok;
+        pohyb_maska     := pohyb_maska;
         addr_ram_v      := addr_ram_v;
         addr_ram_v_old  := addr_ram_v_old;
 
@@ -194,46 +196,43 @@ begin
             cnt_layout_rom := cnt_layout_rom + 1;
           end if;
 			 
-			 
-			 
-		  when vyhledani_cile =>
+        when vyhledani_cile =>
 
-                addr_ram_s <= std_logic_vector(addr_ram_v);
-                if(addr_ram_v > 0) then
-                  if(r_ram = c_cil) then
+          addr_ram_s <= std_logic_vector(addr_ram_v);
+          if(addr_ram_v > 0) then
+            if(r_ram = c_cil) then
 
-                    -- dekoder souradnic z adresy ram a ulozeni do cil x,y
-                    -- \_{°-°}_/
+            -- dekoder souradnic z adresy ram a ulozeni do cil x,y
+            -- \_{°-°}_/
 
-                    if((addr_ram_v - 1) < 7) then
-                      cil_x := to_unsigned(to_integer(addr_ram_v - 1),3);
-                      cil_y := to_unsigned(0,3);
-                    elsif((addr_ram_v - 1) < 14) then
-                      cil_x := to_unsigned(to_integer(addr_ram_v - 8),3);
-                      cil_y := to_unsigned(1,3);
-                    elsif((addr_ram_v - 1) < 21) then
-                      cil_x := to_unsigned(to_integer(addr_ram_v - 15),3);
-                      cil_y := to_unsigned(2,3);
-                    elsif((addr_ram_v - 1) < 28) then
-                      cil_x := to_unsigned(to_integer(addr_ram_v - 22),3);
-                      cil_y := to_unsigned(3,3);
-                    elsif((addr_ram_v - 1) < 35) then
-                      cil_x := to_unsigned(to_integer(addr_ram_v - 29),3);
-                      cil_y := to_unsigned(4,3);
-                    elsif((addr_ram_v - 1) < 42) then
-                      cil_x := to_unsigned(to_integer(addr_ram_v - 36),3);
-                      cil_y := to_unsigned(5,3);
-                    end if;
+            if((addr_ram_v - 1) < 7) then
+              cil_x := to_unsigned(to_integer(addr_ram_v - 1),3);
+              cil_y := to_unsigned(0,3);
+            elsif((addr_ram_v - 1) < 14) then
+              cil_x := to_unsigned(to_integer(addr_ram_v - 8),3);
+              cil_y := to_unsigned(1,3);
+            elsif((addr_ram_v - 1) < 21) then
+              cil_x := to_unsigned(to_integer(addr_ram_v - 15),3);
+              cil_y := to_unsigned(2,3);
+            elsif((addr_ram_v - 1) < 28) then
+              cil_x := to_unsigned(to_integer(addr_ram_v - 22),3);
+              cil_y := to_unsigned(3,3);
+            elsif((addr_ram_v - 1) < 35) then
+              cil_x := to_unsigned(to_integer(addr_ram_v - 29),3);
+              cil_y := to_unsigned(4,3);
+            elsif((addr_ram_v - 1) < 42) then
+              cil_x := to_unsigned(to_integer(addr_ram_v - 36),3);
+              cil_y := to_unsigned(5,3);
+            end if;
 
-                    gamemode_s  <= '1'; --signal grafice, ze jsme ve hre
-                    fsm_notgm <= hra;
-                  
-                  end if;
-                end if;
+            gamemode_s  <= '1'; --signal grafice, ze jsme ve hre
+            fsm_notgm   <= hra;
+            fsm_gm      <= stoji;
+            
+            end if;
+          end if;
 
-                addr_ram_v := addr_ram_v + 1;
-					 
-					 
+          addr_ram_v := addr_ram_v + 1;
 
         when hra =>
 
@@ -248,7 +247,7 @@ begin
             fsm_gm    <= stoji;
           else
 
-  -----------------------------------------------------------------------------
+  ----------------------------------------------------------------------- fsm_gm
 
             case fsm_gm is
 
@@ -465,9 +464,15 @@ begin
 
                   end case;
                 end if;
+                
+                if((start_x = cil_x) and (start_y = cil_y)) then
+                  pohyb_maska := c_maskuj_cil;
+                else
+                  pohyb_maska := c_maskuj_zem;
+                end if;
 
-                start_pos_s <= std_logic_vector(start_x & start_y & pohyb_blok);
-                end_pos_s   <= std_logic_vector(end_x   & end_y   & pohyb_blok);
+                start_pos_s <= std_logic_vector(start_x & start_y & pohyb_maska & pohyb_blok);
+                end_pos_s   <= std_logic_vector(end_x   & end_y   & pohyb_maska & pohyb_blok);
 
               when cekani_ack_re =>
 
@@ -547,10 +552,16 @@ begin
 
                 fsm_gm <= skenovani;
               end if;
+              
+            when others =>
+            
+              rst_ram   <= '1';
+              fsm_notgm <= menu;
+              fsm_gm    <= stoji;
 
             end case; -- fsm_gm
 
-  -----------------------------------------------------------------------------
+  ------------------------------------------------------------------- fsm_gm end
 
           end if;
 
@@ -567,9 +578,10 @@ begin
             finished  <= '0';
             lvl_int   <= lvl_int + 1;
             fsm_notgm <= menu;
-			 elsif(keys.r = '1') then
+            fsm_gm    <= stoji;
+          elsif(keys.r = '1') then
             finished  <= '0';
-			   rst_ram   <= '1';
+            rst_ram   <= '1';
             fsm_notgm <= inic;
             fsm_gm    <= stoji;
           end if;
@@ -579,8 +591,14 @@ begin
             lvl_int   <= 30;
             fsm_notgm <= menu;
           end if;
+         
+        when others =>
 
-      end case;
+          rst_ram   <= '1';
+          fsm_notgm <= menu;
+          fsm_gm    <= stoji;
+
+      end case; -- fsm_notgm
     end if;
   end process;
 

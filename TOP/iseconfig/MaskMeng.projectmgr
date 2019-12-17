@@ -18,15 +18,20 @@
          <ClosedNode>/top - structural D:|xpetra20|MaskMeng_16_12_2019|top.vhd/graphics - Grafika - Behavioral/lvl_load_generator - level_generator - Behavioral</ClosedNode>
          <ClosedNode>/top - structural D:|xpetra20|MaskMeng_16_12_2019|top.vhd/graphics - Grafika - Behavioral/synchronizer - vga_sync - Behavioral</ClosedNode>
          <ClosedNode>/top - structural D:|xpetra20|MaskMeng_16_12_2019|top.vhd/ps2_reader - top_ps2 - behavioral</ClosedNode>
+         <ClosedNode>/top - structural D:|xpetra20|MaskMeng_17_12_2019|top.vhd/game_mechanics - game - behavioral</ClosedNode>
+         <ClosedNode>/top - structural D:|xpetra20|MaskMeng_17_12_2019|top.vhd/graphics - Grafika - Behavioral</ClosedNode>
+         <ClosedNode>/top - structural D:|xpetra20|MaskMeng_17_12_2019|top.vhd/graphics - Grafika - Behavioral/lvl_load_generator - level_generator - Behavioral</ClosedNode>
+         <ClosedNode>/top - structural D:|xpetra20|MaskMeng_17_12_2019|top.vhd/graphics - Grafika - Behavioral/synchronizer - vga_sync - Behavioral</ClosedNode>
+         <ClosedNode>/top - structural D:|xpetra20|MaskMeng_17_12_2019|top.vhd/ps2_reader - top_ps2 - behavioral</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem>top - structural (D:/xpetra20/MaskMeng_16_12_2019/top.vhd)</SelectedItem>
+         <SelectedItem>top - structural (V:/NDI/MaskMeng_17_12_2019 (1)/TOP/top.vhd)</SelectedItem>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff000000000000000100000001000000000000000000000000000000000202000000010000000100000064000001a2000000020000000000000000000000000200000064ffffffff000000810000000300000002000001a20000000100000003000000000000000100000003</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff000000000000000100000001000000000000000000000000000000000202000000010000000100000064000001f2000000020000000000000000000000000200000064ffffffff000000810000000300000002000001f20000000100000003000000000000000100000003</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >true</UserChangedColumnWidths>
-      <CurrentItem>top - structural (D:/xpetra20/MaskMeng_16_12_2019/top.vhd)</CurrentItem>
+      <CurrentItem>top - structural (V:/NDI/MaskMeng_17_12_2019 (1)/TOP/top.vhd)</CurrentItem>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_VHDL_ARCHITECTURE" guiview="Process" >
       <ClosedNodes>
@@ -38,13 +43,13 @@
          <ClosedNode>User Constraints</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem>Generate Programming File</SelectedItem>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000124000000010000000100000000000000000000000064ffffffff000000810000000000000001000001240000000100000000</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000218000000010000000100000000000000000000000064ffffffff000000810000000000000001000002180000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem>Generate Programming File</CurrentItem>
    </ItemView>
    <ItemView guiview="File" >
       <ClosedNodes>
@@ -123,13 +128,13 @@
          <ClosedNode>Design Utilities</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000124000000010000000100000000000000000000000064ffffffff000000810000000000000001000001240000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_UCF" guiview="Process" >
       <ClosedNodes>
@@ -137,12 +142,12 @@
          <ClosedNode>User Constraints</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000124000000010000000100000000000000000000000064ffffffff000000810000000000000001000001240000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
 </Project>

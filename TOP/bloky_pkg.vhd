@@ -16,8 +16,10 @@ package bloky_pkg is
   constant c_smer_left   : std_logic_vector (1 downto 0) := "10";
   constant c_smer_right  : std_logic_vector (1 downto 0) := "11";
 
-  constant c_pohyb_hrc   : unsigned (1 downto 0) := "11";
-  constant c_pohyb_blk   : unsigned (1 downto 0) := "00";
+  constant c_pohyb_blk   : std_logic := '0';
+  constant c_pohyb_hrc   : std_logic := '1';
+  constant c_maskuj_zem  : std_logic := '0';
+  constant c_maskuj_cil  : std_logic := '1';
 
 end bloky_pkg;
 
