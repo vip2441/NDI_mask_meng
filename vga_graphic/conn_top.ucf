@@ -8,6 +8,7 @@ NET "R" LOC = "R12";
 NET "G" LOC = "T12";
 NET "B" LOC = "R11";
 NET "game_on" LOC = "K13";
+NET "frame_tick" LOC = "P11";
 
 #NET "lvl_1[3]" LOC = K13;
 #NET "lvl_1[2]" LOC = K14;

@@ -23,11 +23,10 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity level_generator is
     Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
-			  pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
+			  pixx_offs, pixy_offs: out std_logic_vector(10 downto 0);
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
-           clock, clk_div: in  STD_LOGIC;
-			  border_draw_en: out  STD_LOGIC;
+           clock: in  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
 			  --offsety zvolenych objektu
@@ -43,6 +42,12 @@ entity level_generator is
 end level_generator;
 
   architecture Behavioral of level_generator is
+  
+	component frequency_divider is
+		generic(modulo : natural := 15);		--deli cislem 2^(modulo + 1)
+		Port (clk_in : in  STD_LOGIC;
+           clk_out_div : out  STD_LOGIC := '0');
+	end component;
 
 	--citace pixelu v radcich a sloupcich
 	signal cntx, cnty, 					--citace cele obrazovky
@@ -70,8 +75,16 @@ end level_generator;
 	type state_type is(LOAD,CHOOSE_MOVE, MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, MOVE_DONE);
 	signal state: state_type;
 	signal performing_move: std_logic := '0';
+	
+	signal clk_div: std_logic;
 
 begin
+
+	divider: frequency_divider
+	port map(
+		clk_in => clock,
+		clk_out_div => clk_div	
+	);
 		
 	position_start_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
 	position_start_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
@@ -136,7 +149,6 @@ begin
 										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or		--kresleni leve steny
 										((cntxoffs >=dimm_x and cntxoffs < 65 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or			--kresleni prvae steny
 										(cntxoffs < 65 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then					--kresleni spodni steny
-				border_draw_en <= '1';
 				mem_add <= (others => '1');
 				selected_object <= "101";
 				
@@ -149,37 +161,30 @@ begin
 						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 9));
 							
 						if(start_pos(1 downto 0) = "11" or end_pos(1 downto 0) = "11") then  --posouvany objekt je hrac
-							border_draw_en <= '0';
 							mem_add <= (others => '1');
 							selected_object <= "111";
 						else					--posouvany objekt je kamen, koncova hodnota 10,01 nebo 00
-							border_draw_en <= '0';
 							mem_add <= (others => '1');
 							selected_object <= "110";
 						end if;
 						
 					elsif((inside_area_count_x >= position_start_x) and (inside_area_count_x < (64 + position_start_x)) 
 								and(inside_area_count_y >= (position_start_y)) and (inside_area_count_y < (64 + position_start_y)))then					--kdyz se nachazi na pocatecni pozici objektu
-							border_draw_en <= '0';
 							mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
 							selected_object <= "000";
 							
 					else						--kdyz se nachazi vsude jinde
-						border_draw_en <= '0';
 						mem_add <= std_logic_vector(to_unsigned(row + column,6));
 						selected_object <= mem_data;							
 					end if;
 				elsif(game_on = '1' and performing_move = '0') then		--kresli to, co je v pameti
-					border_draw_en <= '0';
 					mem_add <= std_logic_vector(to_unsigned(row + column,6));
 					selected_object <= mem_data;
 				else					--pohyb se nevykonava a jeste ani nezacala hra
-					border_draw_en <= '0';
 					mem_add <= (others => '1');
 					selected_object <= "101";
 				end if;				
 			else						--nekreslit nic
-				border_draw_en <= '0';
 				mem_add <= (others => '1');
 				selected_object <= "100";			--objekt niceho
 			end if;
@@ -239,7 +244,7 @@ begin
 					ack <= '0';
 					performing_move <= '1';
 					count_x <= position_start_x;
-					count_y <= mov_offs_y + 8;
+					count_y <= mov_offs_y + 1;
 				
 					if(count_y = position_end_y)	then 
 						state <= MOVE_DONE;
@@ -253,7 +258,7 @@ begin
 					ack <= '0';
 					performing_move <= '1';
 					count_x <= position_start_x;
-					count_y <= mov_offs_y - 8;
+					count_y <= mov_offs_y - 1;
 					
 					if(count_y = position_end_y)	then 
 						state <= MOVE_DONE;
@@ -266,7 +271,7 @@ begin
 				when MOVE_LEFT =>	
 					ack <= '0';
 					performing_move <= '1';
-					count_x <= mov_offs_x - 8;
+					count_x <= mov_offs_x - 1;
 					count_y <= position_start_y;
 						
 					if(count_x = position_end_x)	then 
@@ -280,7 +285,7 @@ begin
 				when MOVE_RIGHT =>	
 					ack <= '0';
 					performing_move <= '1';
-					count_x <= mov_offs_x + 8;
+					count_x <= mov_offs_x + 1;
 					count_y <= position_start_y;
 					
 					if(count_x = position_end_x)	then
@@ -317,9 +322,5 @@ begin
 	pixx_offs <= std_logic_vector(to_unsigned(cntxoffs,11));
 	pixy_offs <= std_logic_vector(to_unsigned(cntyoffs,11));
 	
-	--citace pixelu vnitrni oblasti
-	inside_pixx_offs <= std_logic_vector(to_unsigned(inside_area_count_x,11));
-	inside_pixy_offs <= std_logic_vector(to_unsigned(inside_area_count_y,11));
-
 end Behavioral;
 
