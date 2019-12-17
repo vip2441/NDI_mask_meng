@@ -26,7 +26,7 @@ entity object_generator is
 				sel: in std_logic_vector(2 downto 0);
            pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
            offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
-			  white_dots_en, obj_en: out std_logic;
+			  obj_en: out std_logic;
 			  color: out std_logic_vector(2 downto 0);
 			  
 			  --signaly pro pamet
@@ -75,9 +75,7 @@ begin
 	begin
 		if(rising_edge(clk)) then
 			mem_read_enable <= '1';		
-			mem_add_x <= std_logic_vector(to_unsigned((((cntx - offsx) mod 64)*64 + ((cnty - offsy) mod 64)),12));
-			--mem_add_x <= std_logic_vector(to_unsigned(((((cnty - offsy) mod 64)*2) + (((cntx - offsx) mod 64)/32)) ,7)); --vybere vzdy polovinu radku
-			white_dots_en <= '0';
+			mem_add_x <= std_logic_vector(to_unsigned((((cntx - offsx + 1) mod 64)*64 + ((cnty - offsy) mod 64)),12));
 			obj_en <= '1';
 			
 		if(sel = "101") then			--STENA
@@ -90,15 +88,10 @@ begin
 			mem_add_y <= "0011";
 		elsif(sel = "011") then			--JIDLO
 			mem_add_y <= "0100";
-		elsif(sel = "001") then				--bile tecky v rozich
-			mem_read_enable <= '0';
-			mem_add_y <= "1111";
-			white_dots_en <= '1';
-			obj_en <= '0';
 		else
 			mem_read_enable <= '0';			-- kombinace 100
-			mem_add_x <= (others => '0');
-			mem_add_y <= (others => '0');
+			mem_add_x <= (others => '1');
+			mem_add_y <= (others => '1');
 			obj_en <= '0';
 		end if;
 			

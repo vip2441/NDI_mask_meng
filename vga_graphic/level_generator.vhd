@@ -23,11 +23,10 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity level_generator is
     Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
-			  pixx_offs, pixy_offs, inside_pixx_offs, inside_pixy_offs : out std_logic_vector(10 downto 0);
+			  pixx_offs, pixy_offs: out std_logic_vector(10 downto 0);
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
            clock: in  STD_LOGIC;
-			  border_draw_en: out  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
 			  --offsety zvolenych objektu
@@ -42,15 +41,13 @@ entity level_generator is
 			  );
 end level_generator;
 
-architecture Behavioral of level_generator is
-
+  architecture Behavioral of level_generator is
+  
 	component frequency_divider is
 		generic(modulo : natural := 15);		--deli cislem 2^(modulo + 1)
-		Port ( clk_in : in  STD_LOGIC;
-				clk_out_div : out  STD_LOGIC := '0');
+		Port (clk_in : in  STD_LOGIC;
+           clk_out_div : out  STD_LOGIC := '0');
 	end component;
-
-	signal divided_clock: std_logic := '0';
 
 	--citace pixelu v radcich a sloupcich
 	signal cntx, cnty, 					--citace cele obrazovky
@@ -78,15 +75,16 @@ architecture Behavioral of level_generator is
 	type state_type is(LOAD,CHOOSE_MOVE, MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, MOVE_DONE);
 	signal state: state_type;
 	signal performing_move: std_logic := '0';
+	
+	signal clk_div: std_logic;
 
 begin
 
 	divider: frequency_divider
-		port map(
-			clk_in => clock,
-			clk_out_div => divided_clock
-		
-		);
+	port map(
+		clk_in => clock,
+		clk_out_div => clk_div	
+	);
 		
 	position_start_x <= to_integer(unsigned(start_pos(7 downto 5)))*64;
 	position_start_y <= to_integer(unsigned(start_pos(4 downto 2)))*64;
@@ -98,7 +96,7 @@ begin
 	cnty <= to_integer(unsigned(pix_y));
 	
 	--pocitadla radku a sloupcu hraciho pole pro celou arenu
-	cntxoffs <= (cntx - area_offset_x) when cntx >= area_offset_x and cntx < 576 + area_offset_x else 1200;
+	cntxoffs <= (cntx - area_offset_x) when cntx >= area_offset_x and cntx < 576 + area_offset_x + 1 else 1200;
 	cntyoffs <= (cnty - area_offset_y) when cnty >= area_offset_y and cnty < 512 + area_offset_y else 1200;
 	
 	--pocitadlo vnitrni hraci plochy
@@ -146,17 +144,11 @@ begin
 		if(rising_edge(clock)) then
 			obj_offs_x <= (others => '0');
 			obj_offs_y <= (others => '0');
-			
-			if((cntx = 0 and cnty = 0) or (cntx = 799 and cnty = 0) or (cntx = 0 and cnty = 599) or (cntx = 799 and cnty = 599))then
-				border_draw_en <= '0';
-				mem_add <= (others => '1');
-				selected_object <= "001";
 				
-			elsif((cntxoffs < 64 + dimm_x and cntyoffs < 64) or		--kresleni vnejsich sten
-										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
-										((cntxoffs >=dimm_x and cntxoffs < 64 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or
-										(cntxoffs < 64 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then
-				border_draw_en <= '1';
+			if((cntxoffs < 65 + dimm_x and cntyoffs < 64) or		--kresleni hornich sten
+										(cntxoffs < 64 and (cntyoffs >= 64 and cntyoffs < dimm_y)) or		--kresleni leve steny
+										((cntxoffs >=dimm_x and cntxoffs < 65 + dimm_x) and (cntyoffs >= 64 and cntyoffs < dimm_y)) or			--kresleni prvae steny
+										(cntxoffs < 65 + dimm_x and (cntyoffs >= dimm_y and cntyoffs < 64 + dimm_y))) then					--kresleni spodni steny
 				mem_add <= (others => '1');
 				selected_object <= "101";
 				
@@ -168,38 +160,36 @@ begin
 						obj_offs_x <= std_logic_vector(to_unsigned(mov_offs_x, 9));
 						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 9));
 							
-						if(start_pos(1 downto 0) = "11" or end_pos(1 downto 0) = "11") then  --posouvany objekt je hrac
-							border_draw_en <= '0';
+						if(start_pos(0) = '1' or end_pos(0) = '1') then  --posouvany objekt je hrac
 							mem_add <= (others => '1');
 							selected_object <= "111";
 						else					--posouvany objekt je kamen, koncova hodnota 10,01 nebo 00
-							border_draw_en <= '0';
 							mem_add <= (others => '1');
 							selected_object <= "110";
 						end if;
 						
 					elsif((inside_area_count_x >= position_start_x) and (inside_area_count_x < (64 + position_start_x)) 
 								and(inside_area_count_y >= (position_start_y)) and (inside_area_count_y < (64 + position_start_y)))then					--kdyz se nachazi na pocatecni pozici objektu
-							border_draw_en <= '0';
-							mem_add <= std_logic_vector(to_unsigned(row + column,6));				--pravdepodobne nepotrebne
+						
+						mem_add <= std_logic_vector(to_unsigned(row + column,6));
+						
+						if(start_pos(1) = '0' or end_pos(1) = '0') then					--prekresluje pocatecni pozici podlahou							
 							selected_object <= "000";
-							
+						else						--na pocatecni pozici hybaneho objektu byl cil
+							selected_object <= "011";
+						end if;
 					else						--kdyz se nachazi vsude jinde
-						border_draw_en <= '0';
 						mem_add <= std_logic_vector(to_unsigned(row + column,6));
 						selected_object <= mem_data;							
 					end if;
 				elsif(game_on = '1' and performing_move = '0') then		--kresli to, co je v pameti
-					border_draw_en <= '0';
 					mem_add <= std_logic_vector(to_unsigned(row + column,6));
 					selected_object <= mem_data;
 				else					--pohyb se nevykonava a jeste ani nezacala hra
-					border_draw_en <= '0';
 					mem_add <= (others => '1');
 					selected_object <= "101";
 				end if;				
 			else						--nekreslit nic
-				border_draw_en <= '0';
 				mem_add <= (others => '1');
 				selected_object <= "100";			--objekt niceho
 			end if;
@@ -215,12 +205,12 @@ begin
 	end process;
 	
 	
-	GRAND_FSM:process(divided_clock, reset)
+	GRAND_FSM:process(clk_div, reset)
 	begin
 		if(reset = '1') then
 			state <= LOAD;
 			ack <= '0';
-		elsif(rising_edge(divided_clock)) then
+		elsif(rising_edge(clk_div)) then
 			
 			case state is				
 				when LOAD =>	
@@ -337,9 +327,5 @@ begin
 	pixx_offs <= std_logic_vector(to_unsigned(cntxoffs,11));
 	pixy_offs <= std_logic_vector(to_unsigned(cntyoffs,11));
 	
-	--citace pixelu vnitrni oblasti
-	inside_pixx_offs <= std_logic_vector(to_unsigned(inside_area_count_x,11));
-	inside_pixy_offs <= std_logic_vector(to_unsigned(inside_area_count_y,11));
-
 end Behavioral;
 
