@@ -1,0 +1,1 @@
+-intstyle "ise" -incremental -o "D:/xpetra20/MaskMeng_16_12_2019/tb_top_isim_beh.exe" -prj "D:/xpetra20/MaskMeng_16_12_2019/tb_top_beh.prj" "work.tb_top" 

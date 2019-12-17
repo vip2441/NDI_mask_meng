@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="D:/xpetra20/MaskMeng_16_12_2019/tb_top_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="bloky_pkg" />
+            <top_module name="numeric_std" />
+            <top_module name="ps2_pkg" />
+            <top_module name="std_logic_1164" />
+            <top_module name="tb_top" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="11" />
+   <wvobject fp_name="/tb_top/keys" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">keys</obj_property>
+      <obj_property name="ObjectShortName">keys</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/lvl_des" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">lvl_des[3:0]</obj_property>
+      <obj_property name="ObjectShortName">lvl_des[3:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/lvl_jed" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">lvl_jed[3:0]</obj_property>
+      <obj_property name="ObjectShortName">lvl_jed[3:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/gamemode" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">gamemode</obj_property>
+      <obj_property name="ObjectShortName">gamemode</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/fin" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">fin</obj_property>
+      <obj_property name="ObjectShortName">fin</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/move" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">move</obj_property>
+      <obj_property name="ObjectShortName">move</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/ack" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ack</obj_property>
+      <obj_property name="ObjectShortName">ack</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/game_mechanics/fsm_notgm" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">fsm_notgm</obj_property>
+      <obj_property name="ObjectShortName">fsm_notgm</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/game_mechanics/fsm_gm" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">fsm_gm</obj_property>
+      <obj_property name="ObjectShortName">fsm_gm</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/graphics/lvl_load_generator/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top/graphics/lvl_load_generator/clk_div" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_div</obj_property>
+      <obj_property name="ObjectShortName">clk_div</obj_property>
+   </wvobject>
+</wave_config>

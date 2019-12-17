@@ -1,0 +1,8 @@
+INTSTYLE=ise
+INFILE=D:\xpetra20\MaskMeng_16_12_2019\top.ncd
+OUTFILE=D:\xpetra20\MaskMeng_16_12_2019\top.bit
+FAMILY=Spartan3
+PART=xc3s200-4ft256
+WORKINGDIR=D:\xpetra20\MaskMeng_16_12_2019
+LICENSE=WebPack
+USER_INFO=211564193_0_0_035
