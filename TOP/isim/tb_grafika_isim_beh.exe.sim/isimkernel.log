@@ -1,0 +1,31 @@
+Command line:
+   tb_grafika_isim_beh.exe
+     -simmode  gui
+     -simrunnum  0
+     -socket  51678
+
+Tue Jan 21 14:58:55 2020
+
+
+ Elaboration Time: 0.21875 sec
+
+ Current Memory Usage: 5260.64 Meg
+
+ Total Signals          : 219
+ Total Nets             : 131477
+ Total Signal Drivers   : 90
+ Total Blocks           : 15
+ Total Primitive Blocks : 11
+ Total Processes        : 60
+ Total Traceable Variables  : 30
+ Total Scalar Nets and Variables : 197512
+Total Line Count : 387
+Total Line Count : 387
+Total Line Count : 387
+
+ Total Simulation Time: 79.2344 sec
+
+ Current Memory Usage: 4788.78 Meg
+
+Tue Jan 21 15:42:37 2020
+

@@ -1,0 +1,41 @@
+Running: fuse.exe -relaunch -intstyle "ise" -incremental -o "C:/SharedVmchine/NDI_mask_meng/TOP/tb_grafika_isim_beh.exe" -prj "C:/SharedVmchine/NDI_mask_meng/TOP/tb_grafika_beh.prj" "work.tb_grafika" 
+ISim P.20131013 (signature 0x7708f090)
+Number of CPUs detected in this system: 4
+Turning on mult-threading, number of parallel sub-compilation jobs: 8 
+Determining compilation order of HDL files
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/frequency_divider.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/cntr.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/vga_sync.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/ROM_lett_num.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/object_generator.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/level_generator.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/gui_generator.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/gui_decoder.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/graphic_rom.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/arb_obj_gen.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/Grafika/Grafika.vhd" into library work
+Parsing VHDL file "C:/SharedVmchine/NDI_mask_meng/TOP/tb_grafika.vhd" into library work
+Starting static elaboration
+Completed static elaboration
+Compiling package standard
+Compiling package std_logic_1164
+Compiling package numeric_std
+Compiling architecture behavioral of entity gui_generator [gui_generator_default]
+Compiling architecture behavioral of entity gui_decoder [gui_decoder_default]
+Compiling architecture behavioral of entity ROM_lett_num [rom_lett_num_default]
+Compiling architecture behavioral of entity cntr [\cntr(1040)\]
+Compiling architecture behavioral of entity cntr [\cntr(666)\]
+Compiling architecture behavioral of entity vga_sync [vga_sync_default]
+Compiling architecture behavioral of entity frequency_divider [\frequency_divider(15)\]
+Compiling architecture behavioral of entity level_generator [level_generator_default]
+Compiling architecture behavioral of entity object_generator [object_generator_default]
+Compiling architecture behavioral of entity arb_obj_gen [arb_obj_gen_default]
+Compiling architecture behavioral of entity graphic_rom [graphic_rom_default]
+Compiling architecture behavioral of entity Grafika [grafika_default]
+Compiling architecture behavior of entity tb_grafika
+Time Resolution for simulation is 1ps.
+Waiting for 7 sub-compilation(s) to finish...
+Compiled 28 VHDL Units
+Built simulation executable C:/SharedVmchine/NDI_mask_meng/TOP/tb_grafika_isim_beh.exe
+Fuse Memory Usage: 59316 KB
+Fuse CPU Usage: 999 ms

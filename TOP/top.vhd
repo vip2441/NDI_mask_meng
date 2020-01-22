@@ -28,12 +28,12 @@ use work.bloky_pkg.all;
 use work.ps2_pkg.all;
 
 entity top is
-    port  ( clk         : in  std_logic;
-            reset       : in  std_logic;
-            ps2_c       : in  std_logic;
-            ps2_d       : in  std_logic;
-            hs,vs       : out std_logic;
-            r,g,b       : out std_logic
+    port  ( clk         			: in  std_logic;
+            reset, wf_en  			: in  std_logic;
+            ps2_c       			: in  std_logic;
+            ps2_d       			: in  std_logic;
+            hs,vs, frame_tick    : out std_logic;
+            r,g,b       			: out std_logic
           );
 end top;
 
@@ -98,8 +98,8 @@ architecture structural of top is
   end component;
 
   component grafika is
-    port  ( clk         : in  std_logic;
-            hs,vs       : out std_logic;
+    port  ( clk, wf_en  : in  std_logic;
+            hs,vs, frame_tick       : out std_logic;
             r,g,b       : out std_logic;
 
             --GM
@@ -207,8 +207,10 @@ begin
 
   graphics : grafika
     port map  ( clk           => clk,
+					wf_en				=> wf_en,
                 hs            => hs,
                 vs            => vs,
+					 frame_tick => frame_tick,
                 r             => r,
                 g             => g,
                 b             => b,

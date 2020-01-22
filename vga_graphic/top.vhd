@@ -8,8 +8,8 @@ entity top is
 			  --start_pos, end_pos: in std_logic_vector(7 downto 0);
 			  
 			  --pamet usporadani levelu
-			  lvl_mem_add: out std_logic_vector(5 downto 0);
-			  lvl_mem_data: in std_logic_vector(2 downto 0);
+			  --lvl_mem_add: out std_logic_vector(5 downto 0);
+			  --lvl_mem_data: in std_logic_vector(2 downto 0);
 			  
 			  --signaly pro pohyb
 			  move: in std_logic;
@@ -20,7 +20,7 @@ entity top is
 			  game_on, finish:std_logic := '0'
 			  
 			  --herni informace
-			  lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
+			  --lvl_1, lvl_10, stp_1, stp_10: in std_logic_vector(3 downto 0)
 	);
 end top;
 

@@ -1,1 +1,1 @@
--intstyle "ise" -incremental -o "D:/xpetra20/MaskMeng_16_12_2019/tb_top_isim_beh.exe" -prj "D:/xpetra20/MaskMeng_16_12_2019/tb_top_beh.prj" "work.tb_top" 
+-intstyle "ise" -incremental -o "C:/SharedVmchine/NDI_mask_meng/TOP/tb_grafika_isim_beh.exe" -prj "C:/SharedVmchine/NDI_mask_meng/TOP/tb_grafika_beh.prj" "work.tb_grafika" 

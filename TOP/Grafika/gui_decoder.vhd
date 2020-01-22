@@ -5,7 +5,6 @@ use IEEE.NUMERIC_STD.ALL;
 entity gui_decoder is
     Port ( clk : in  STD_LOGIC;
 			 sel: in std_logic_vector(5 downto 0);
-			 pxx, pxy: in std_logic_vector(10 downto 0);
 			 pix_x,pix_y: in std_logic_vector(10 downto 0);
 			
 			 --pamet s logem,entrem
@@ -21,18 +20,17 @@ entity gui_decoder is
 			 mem_data_2: in std_logic_vector(0 to 31);
 			 
 			 color: out std_logic_vector(2 downto 0);
-			 gui_en, white_dots_en : out STD_LOGIC
+			 gui_en : out STD_LOGIC
 			);
 end gui_decoder;
 
 architecture Behavioral of gui_decoder is
 
-	signal cx,cy,cntx, cnty: natural range 0 to 1200 := 0;
+	signal cntx, cnty: natural range 0 to 1200 := 0;
 	signal sel_color, sel_baw: std_logic := '0';				--cteni z barevnych nebo cernobilych sprajtu
 
 begin
-	cx <= to_integer(unsigned(pxx));
-	cy <= to_integer(unsigned(pxy));
+	
 	cntx <= to_integer(unsigned(pix_x));
 	cnty <= to_integer(unsigned(pix_y));
 
@@ -120,15 +118,8 @@ begin
 		variable temp: std_logic := '0';
 	begin
 		if(rising_edge(clk)) then
-			white_dots_en <= '0';
-			if((cx = 0) or (cx = 798) or (cy = 0) or (cy = 599))then
-				color <= "111";
-				white_dots_en <= '1';
-				
-			elsif(((cx >= 1) and (cx <= 4) and (cy >= 0) and (cy <= 599)) or (cx = 230 and (cy >= 0) and (cy < 500))) then
-				color <= "000";				
-				
-			elsif(sel_color = '1') then
+		
+			if(sel_color = '1') then
 				
 				case(mem_data_1) is
 					when "11" => color <= "110";

@@ -7,6 +7,7 @@ NET "VS" LOC = T10;
 NET "R" LOC = R12;
 NET "G" LOC = T12;
 NET "B" LOC = R11;
+NET "wf_en" LOC = K13;
 
 #Created by Constraints Editor (xc3s200-ft256-4) - 2019/12/03
 NET "clk" TNM_NET = clk;

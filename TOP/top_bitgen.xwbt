@@ -1,8 +1,8 @@
 INTSTYLE=ise
-INFILE=D:\xpetra20\MaskMeng_17_12_2019\top.ncd
-OUTFILE=D:\xpetra20\MaskMeng_17_12_2019\top.bit
+INFILE=C:\SharedVmchine\NDI_mask_meng\TOP\top.ncd
+OUTFILE=C:\SharedVmchine\NDI_mask_meng\TOP\top.bit
 FAMILY=Spartan3
 PART=xc3s200-4ft256
-WORKINGDIR=D:\xpetra20\MaskMeng_17_12_2019
+WORKINGDIR=C:\SharedVmchine\NDI_mask_meng\TOP
 LICENSE=WebPack
-USER_INFO=211564193_0_0_035
+USER_INFO=211824790_0_0_572

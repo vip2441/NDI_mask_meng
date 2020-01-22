@@ -72,8 +72,8 @@ h_cnt: cntr
 v_cnt: cntr
 		generic map(modulo => vline)
 		port map(
-		clk => ovf_inter,
-		ce => '1',
+		clk => clk,
+		ce => ovf_inter,
 		clr => '0',
 		ovf => frame_tick,
 		q => px_y);

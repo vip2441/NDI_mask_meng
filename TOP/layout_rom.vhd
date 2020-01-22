@@ -264,7 +264,12 @@ architecture behavioral of layout_rom is
 
 begin
 
-  data_out_a <= rom(to_integer(unsigned(addr_a)));
-  data_out_b <= rom(to_integer(unsigned(addr_b)));
-
+	process(clk)				--pridal jsem zde proces, Vlada
+	begin
+		if(rising_edge(clk)) then
+			data_out_a <= rom(to_integer(unsigned(addr_a)));
+			data_out_b <= rom(to_integer(unsigned(addr_b)));
+		end if;
+	end process;
+	
 end behavioral;
