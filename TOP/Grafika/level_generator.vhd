@@ -23,14 +23,14 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity level_generator is
     Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
-			  pixx_offs, pixy_offs: out std_logic_vector(10 downto 0);
+			  pixx_offs, pixy_offs: out std_logic_vector(5 downto 0);
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
            clock: in  STD_LOGIC;
 			  selected_object: out std_logic_vector(2 downto 0);
 			  
 			  --offsety zvolenych objektu
-			  obj_offs_x, obj_offs_y: out std_logic_vector(8 downto 0);
+			  obj_offs_x, obj_offs_y: out std_logic_vector(5 downto 0);
 			  --signaly pohybu
 			  start_pos, end_pos: in std_logic_vector(7 downto 0);
 			  move, reset : in  STD_LOGIC;
@@ -157,8 +157,8 @@ begin
 					if((inside_area_count_x >= mov_offs_x) and (inside_area_count_x < 64 + mov_offs_x) 
 					and (inside_area_count_y >= mov_offs_y) and (inside_area_count_y < 64 + mov_offs_y)) then				--kdyz se nachazi na soucasne pozici objektu
 							
-						obj_offs_x <= std_logic_vector(to_unsigned(mov_offs_x, 9));
-						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 9));
+						obj_offs_x <= std_logic_vector(to_unsigned(mov_offs_x, 6));
+						obj_offs_y <= std_logic_vector(to_unsigned(mov_offs_y, 6));
 							
 						if(start_pos(0) = '1' or end_pos(0) = '1') then  --posouvany objekt je hrac
 							mem_add <= (others => '1');
@@ -202,15 +202,15 @@ begin
 			mov_offs_x <= count_x;
 			mov_offs_y <= count_y;
 		end if;		
-	end process;
+	end process;	
 	
-	
-	GRAND_FSM:process(clk_div, reset)
+	GRAND_FSM:process(clock, reset)
 	begin
 		if(reset = '1') then
 			state <= LOAD;
 			ack <= '0';
-		elsif(rising_edge(clk_div)) then
+		elsif(rising_edge(clock)) then
+			if clk_div = '1' then
 			
 			case state is				
 				when LOAD =>	
@@ -320,12 +320,13 @@ begin
 					count_y <= 0;
 					state <= LOAD;				
 			end case;
+			end if;
 		end if;
 	end process;
 	
 	--citace pixelu pro celou arenu
-	pixx_offs <= std_logic_vector(to_unsigned(cntxoffs,11));
-	pixy_offs <= std_logic_vector(to_unsigned(cntyoffs,11));
+	pixx_offs <= std_logic_vector(to_unsigned(cntxoffs,6));
+	pixy_offs <= std_logic_vector(to_unsigned(cntyoffs,6));
 	
 end Behavioral;
 

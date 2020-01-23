@@ -15,7 +15,7 @@ end layout_rom;
 
 architecture behavioral of layout_rom is
 
-  type      rom_type is array(0 to 2046) of std_logic_vector(2 downto 0);
+  type      rom_type is array(0 to 2047) of std_logic_vector(2 downto 0);
   constant  rom : rom_type := (
 
       -------------------------------------------------- level 1 (0-41)
@@ -264,12 +264,7 @@ architecture behavioral of layout_rom is
 
 begin
 
-	process(clk)				--pridal jsem zde proces, Vlada
-	begin
-		if(rising_edge(clk)) then
-			data_out_a <= rom(to_integer(unsigned(addr_a)));
-			data_out_b <= rom(to_integer(unsigned(addr_b)));
-		end if;
-	end process;
+	data_out_a <= rom(to_integer(unsigned(addr_a)));
+	data_out_b <= rom(to_integer(unsigned(addr_b)));
 	
 end behavioral;

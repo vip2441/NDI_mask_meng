@@ -34,7 +34,7 @@ architecture Behavioral of Grafika is
 
 	component level_generator is
 		Port ( pix_x, pix_y : in  STD_LOGIC_VECTOR (10 downto 0);
-			  pixx_offs, pixy_offs: out std_logic_vector(10 downto 0);
+			  pixx_offs, pixy_offs: out std_logic_vector(5 downto 0);
 			  mem_add: out std_logic_vector(5 downto 0);
 			  mem_data: in std_logic_vector(2 downto 0);
            clock: in  STD_LOGIC;
@@ -44,7 +44,7 @@ architecture Behavioral of Grafika is
 			  move, reset : in  STD_LOGIC;
 			  ack: out std_logic;
 			  
-			  obj_offs_x, obj_offs_y: out std_logic_vector(8 downto 0);
+			  obj_offs_x, obj_offs_y: out std_logic_vector(5 downto 0);
 			  
 			  game_on: in std_logic
 			 
@@ -54,8 +54,8 @@ architecture Behavioral of Grafika is
 	component object_generator is
 		Port ( clk: std_logic;
 			  sel: in std_logic_vector(2 downto 0);
-           pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
-           offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
+           pixx, pixy : in  STD_LOGIC_VECTOR (5 downto 0);
+           offset_x, offset_y : in  STD_LOGIC_VECTOR (5 downto 0);
 			  --white_dots_en, 
 			  obj_en: out std_logic;
 			  color: out std_logic_vector(2 downto 0);
@@ -91,7 +91,7 @@ architecture Behavioral of Grafika is
 	component gui_decoder is
     Port ( clk : in  STD_LOGIC;
 			 sel: in std_logic_vector(5 downto 0);
-			 pix_x,pix_y: in std_logic_vector(10 downto 0);
+			 pix_x,pix_y: in std_logic_vector(5 downto 0);
 			
 			 --pamet s logem,entrem
 			 mem_re1: out std_logic;
@@ -136,20 +136,20 @@ architecture Behavioral of Grafika is
 	signal gui_gen_mem_data, obj_gen_mem_data: std_logic_vector(1 downto 0);
 
 	--offsety grafickych obejktu
-	signal gr_offs_x, gr_offs_y: std_logic_vector(8 downto 0);
+	signal gr_offs_x, gr_offs_y: std_logic_vector(5 downto 0);
 
 	--signaly pro rizeni generatoru objektu
 	signal selected_object, obj_pic, gui_pic, white_frame:std_logic_vector(2 downto 0);
 
 	--signaly pixelu s offsetem
-	signal pixx_arena, pixy_arena: std_logic_vector(10 downto 0) := (others => '0');
+	signal pixx_arena, pixy_arena: std_logic_vector(5 downto 0) := (others => '0');
 
 	--signaly vystupniho multiplexeru
 	signal graphics_enable, arb_gen_en, gui_en: std_logic;
 
 	--signaly zpozdovaaci linky
-	signal pixx_1, pixx_2: std_logic_vector(10 downto 0);
-	signal pixx_3, pixx_4, pixx_5: std_logic_vector(10 downto 0);
+	signal pixx_1, pixx_2: std_logic_vector(5 downto 0);
+	signal pixx_3, pixx_4, pixx_5: std_logic_vector(5 downto 0);
 	
 	--signaly pameti pro vykreslovani gui(pamet pismen a cislic)
 	signal LaN_add_x : STD_LOGIC_VECTOR (5 downto 0);
@@ -176,19 +176,19 @@ begin
 		end if;
 	end process;
 	
-	process(clk)				--zpozdovani GRAFIKY hry
+	process(clk)				--zpozdovani GUI hry
 	begin
 		if(rising_edge(clk)) then
-			pixx_3 <= pxx;
+			pixx_3 <= pxx(5 downto 0);
 			pixx_4 <= pixx_3;
 			pixx_5 <= pixx_4;
 		end if;
 	end process;
 
-	process(clk)			--zpozdovani GUI
+	process(clk)			--zpozdovani GRAFIKY
 	begin
 		if(rising_edge(clk)) then
-			pixx_1 <= pixx_arena;
+			pixx_1 <= pixx_arena(5 downto 0);
 			pixx_2 <= pixx_1;
 		end if;
 	end process;
@@ -232,7 +232,7 @@ begin
 	gui_sprite_decoder: gui_decoder
 		port map(
 			pix_x => pixx_5,
-			pix_y => pxy,
+			pix_y => pxy(5 downto 0),
 			clk => clk,
 			sel => sel_gui_sprite,
 			

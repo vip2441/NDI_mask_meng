@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity gui_decoder is
     Port ( clk : in  STD_LOGIC;
 			 sel: in std_logic_vector(5 downto 0);
-			 pix_x,pix_y: in std_logic_vector(10 downto 0);
+			 pix_x,pix_y: in std_logic_vector(5 downto 0);
 			
 			 --pamet s logem,entrem
 			 mem_re1: out std_logic;
