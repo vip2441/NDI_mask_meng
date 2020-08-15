@@ -8,29 +8,33 @@ entity ps2_decoder is
     port  ( ps2_kod     : in  std_logic_vector (7 downto 0);
             ps2_kod_rdy : in  std_logic;
             clk         : in  std_logic;
+            gamemode    : in  std_logic;
             keys        : out t_keys
           );
 end ps2_decoder;
 
 architecture behavioral of ps2_decoder is
 
-signal  fsm   : t_fsm_dekoder;
+signal  fsm   : t_fsm_dekoder := idle;
 
 begin
 
   process(clk, ps2_kod_rdy, ps2_kod)
   begin
     if (rising_edge(clk)) then
+    
+      keys.up     <= '0';
+      keys.down   <= '0';
+      keys.left   <= '0';
+      keys.right  <= '0';
+      keys.esc    <= '0';
+      keys.enter  <= '0';
+      keys.r      <= '0';
+      fsm <= fsm;
+    
       case fsm is
-
+      
         when idle =>
-          keys.up     <= '0';
-          keys.down   <= '0';
-          keys.left   <= '0';
-          keys.right  <= '0';
-          keys.esc    <= '0';
-          keys.enter  <= '0';
-          keys.r      <= '0';
 
           if(ps2_kod_rdy = '1') then
             if(ps2_kod = c_f0) then
@@ -83,7 +87,28 @@ begin
             when others =>
 
           end case;
-          fsm <= idle;
+          
+          -- pokial v hre - cakaj na pustenie klavesy
+          if (gamemode = '1') then
+            fsm <= disable;
+          else
+            fsm <= idle;
+          end if;
+          
+          when disable =>
+          
+          -- caka na kod pustenia klavesy (F0)
+          if(ps2_kod_rdy = '1') then
+            if(ps2_kod = c_f0) then
+              fsm <= throw_key; -- throw key code
+            end if;
+          end if;
+          
+          when throw_key =>
+            if(ps2_kod_rdy = '1') then
+              fsm <= idle;
+            end if;
+
 
       end case;
     end if;

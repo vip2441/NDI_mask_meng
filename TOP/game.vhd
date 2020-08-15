@@ -37,15 +37,11 @@ end game;
 
 architecture behavioral of game is
 
-  component decoder_to_BCD is
-    generic  ( g_input_width    : in positive;
-               g_decimal_digits : in positive
-             );
-    port  ( clk        : in  std_logic;
-            bcd_start  : in  std_logic;
-            binary_in  : in  std_logic_vector(g_input_width-1 downto 0);       
-            bcd_out    : out std_logic_vector(g_decimal_digits*4-1 downto 0);
-            bcd_done   : out std_logic
+  component binary_to_bcd is
+  port  ( clk       : in  std_logic;
+          binary    : in  std_logic_vector(7 downto 0);
+          bcd_2     : out std_logic_vector(7 downto 0);
+          bcd_done  : out std_logic
       );
   end component;
 
@@ -63,7 +59,6 @@ architecture behavioral of game is
   signal lvl_int       : natural range 0 to 30 := 1;
   signal lvl           : std_logic_vector(7 downto 0);
   signal lvl_101       : std_logic_vector(7 downto 0);
-  signal lvl_bcd_start : std_logic;
   signal lvl_bcd_done  : std_logic;
 
   signal addr_ram_s    : std_logic_vector(5 downto 0)  := (others => '0');
@@ -78,7 +73,6 @@ architecture behavioral of game is
   signal tahy_int       : integer := 0;
   signal tahy           : std_logic_vector(7 downto 0);
   signal tahy_101       : std_logic_vector(7 downto 0);
-  signal tahy_bcd_start : std_logic;
   signal tahy_bcd_done  : std_logic;
 
 begin
@@ -106,7 +100,6 @@ begin
 
     -- id bloku ktory sa hybe pre grafiku
     variable pohyb_blok     : std_logic := c_pohyb_hrc;
-    variable pohyb_maska    : std_logic := c_maskuj_zem;
 
     variable addr_ram_v     : unsigned (5 downto 0) := (others => '0');
     variable addr_ram_v_old : unsigned (5 downto 0) := (others => '0');
@@ -142,7 +135,6 @@ begin
         end_x           := end_x;
         end_y           := end_y;
         pohyb_blok      := pohyb_blok;
-        pohyb_maska     := pohyb_maska;
         addr_ram_v      := addr_ram_v;
         addr_ram_v_old  := addr_ram_v_old;
 
@@ -466,13 +458,12 @@ begin
                 end if;
                 
                 if((start_x = cil_x) and (start_y = cil_y)) then
-                  pohyb_maska := c_maskuj_cil;
+						start_pos_s <= std_logic_vector(start_x & start_y & c_maskuj_cil & pohyb_blok);
+                  end_pos_s   <= std_logic_vector(end_x   & end_y   & c_maskuj_cil & pohyb_blok);
                 else
-                  pohyb_maska := c_maskuj_zem;
+						start_pos_s <= std_logic_vector(start_x & start_y & c_maskuj_zem & pohyb_blok);
+                  end_pos_s   <= std_logic_vector(end_x   & end_y   & c_maskuj_zem & pohyb_blok);
                 end if;
-
-                start_pos_s <= std_logic_vector(start_x & start_y & pohyb_maska & pohyb_blok);
-                end_pos_s   <= std_logic_vector(end_x   & end_y   & pohyb_maska & pohyb_blok);
 
               when cekani_ack_re =>
 
@@ -601,28 +592,24 @@ begin
       end case; -- fsm_notgm
     end if;
   end process;
+  
+  -- binary to BCD
+  
+  lvl   <= '0' & std_logic_vector(to_unsigned(lvl_int,(lvl'length-1)));
+  tahy  <= '0' & std_logic_vector(to_unsigned(tahy_int,(tahy'length-1)));
 
-
-  bcd_lvl : decoder_to_bcd
-    generic map  (  g_input_width => 8,
-                    g_decimal_digits => 2
-                 )
-    port map  ( clk        => clk,
-                bcd_start  => '1',
-                binary_in  => lvl,
-                bcd_out    => lvl_101,
-                bcd_done   => lvl_bcd_done
+  bcd_lvl : binary_to_bcd
+    port map  ( clk       => clk,
+                binary    => lvl,
+                bcd_2     => lvl_101,
+                bcd_done  => lvl_bcd_done
               );
-
-  bcd_tahy : decoder_to_bcd
-    generic map  (  g_input_width => 8,
-                    g_decimal_digits => 2
-                 )
-    port map  ( clk        => clk,
-                bcd_start  => '1',
-                binary_in  => tahy,
-                bcd_out    => tahy_101,
-                bcd_done   => tahy_bcd_done
+              
+  bcd_tahy : binary_to_bcd
+    port map  ( clk       => clk,
+                binary    => tahy,
+                bcd_2     => tahy_101,
+                bcd_done  => tahy_bcd_done
               );
               
   update_bcd : process(clk, lvl_101, tahy_101)
@@ -648,7 +635,5 @@ begin
   start_pos   <= start_pos_s;
   end_pos     <= end_pos_s;
   move        <= move_s;
-  lvl         <= '0' & std_logic_vector(to_unsigned(lvl_int,(lvl'length-1)));
-  tahy        <= '0' & std_logic_vector(to_unsigned(tahy_int,(tahy'length-1)));
 
 end behavioral;

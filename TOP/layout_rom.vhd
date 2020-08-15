@@ -5,11 +5,8 @@ use ieee.numeric_std.all;
 use work.bloky_pkg.all;
 
 entity layout_rom is
-    port  ( clk         : in  std_logic;
-            addr_a      : in  std_logic_vector(10 downto 0);
-            addr_b      : in  std_logic_vector(10 downto 0);
-            data_out_a  : out std_logic_vector(2 downto 0);
-            data_out_b  : out std_logic_vector(2 downto 0)
+    port  ( addr_a      : in  std_logic_vector(10 downto 0);
+            data_out_a  : out std_logic_vector(2 downto 0)
           );
 end layout_rom;
 
@@ -264,7 +261,6 @@ architecture behavioral of layout_rom is
 
 begin
 
-	data_out_a <= rom(to_integer(unsigned(addr_a)));
-	data_out_b <= rom(to_integer(unsigned(addr_b)));
+  data_out_a <= rom(to_integer(unsigned(addr_a)));
 	
 end behavioral;

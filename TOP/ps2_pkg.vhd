@@ -25,7 +25,7 @@ package ps2_pkg is
   end record t_keys;
 
   type t_fsm_ps2rx    is (idle, ready, tx, par, done);
-  type t_fsm_dekoder  is (idle, throw_f0, tx_arrow, set_key);
+  type t_fsm_dekoder  is (idle, throw_f0, tx_arrow, set_key, disable, throw_key);
 
 end ps2_pkg;
 

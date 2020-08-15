@@ -40,11 +40,8 @@ architecture testbench of tb_top is
   end component;
 
   component layout_rom is
-    port  ( clk         : in  std_logic;
-            addr_a      : in  std_logic_vector(10 downto 0);
-            addr_b      : in  std_logic_vector(10 downto 0);
-            data_out_a  : out std_logic_vector(2 downto 0);
-            data_out_b  : out std_logic_vector(2 downto 0)
+    port  ( addr_a      : in  std_logic_vector(10 downto 0);
+            data_out_a  : out std_logic_vector(2 downto 0)
           );
   end component;
 
@@ -110,9 +107,7 @@ architecture testbench of tb_top is
 
   -- rom
   signal addr_a_rom       : std_logic_vector(10 downto 0);
-  signal addr_b_rom       : std_logic_vector(10 downto 0);
   signal data_out_a_rom   : std_logic_vector(2 downto 0);
-  signal data_out_b_rom   : std_logic_vector(2 downto 0);
 
   -- ram
   signal rst_ram          : std_logic;
@@ -151,11 +146,8 @@ begin
               );
 
   level_layout : layout_rom
-    port map  ( clk         => clk,
-                addr_a      => addr_a_rom,
-                addr_b      => addr_b_rom,
-                data_out_a  => data_out_a_rom,
-                data_out_b  => data_out_b_rom
+    port map  ( addr_a      => addr_a_rom,
+                data_out_a  => data_out_a_rom
               );
 
   level_dynamic : dynamic_ram
@@ -275,7 +267,6 @@ begin
     keys.enter  <= '0';
     keys.r      <= '0';
 
-    addr_b_rom  <= (others => '0');
     addr_b_ram  <= (others => '0');
 	 
     wait for clk_per*1000;
