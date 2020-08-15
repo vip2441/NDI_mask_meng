@@ -36,6 +36,8 @@ architecture behavioral of ps2_rx is
   signal ps2_cce      : std_logic;
   signal clk_div_en   : std_logic;
   signal ps2_reg      : std_logic_vector (10 downto 0);
+  
+  signal debounce : std_logic_vector (3 downto 0);
 
 begin
 
@@ -48,24 +50,43 @@ begin
     port map  ( clk_in => clk,
                 clk_en => clk_div_en
               );
+	process (clk) begin
+		if (rising_edge(clk)) then
+			if(clk_div_en = '1') then
+				debounce <= debounce(2 downto 0) & ps2_c;
+			end if;
+		end if;
+	end process;
 
-  process(clk, ps2_c, clk_div_en)
+	process (clk) begin
+		if (rising_edge(clk)) then
+			if debounce = "1111" then
+				ps2_cd <= '1';
+			else
+				ps2_cd <= '0';
+			end if;
+		end if;
+	end process;
 
-    variable ps2_cd_reg : std_logic_vector (3 downto 0) := "0000";
 
-  begin
-    if (rising_edge(clk)) then
-      if(clk_div_en = '1') then
-        ps2_cd_reg := ps2_c & ps2_cd_reg(3 downto 1);
-        if(ps2_cd_reg = "1111") then
-          ps2_cd <= '1';
-        end if;
-        if(ps2_cd_reg = "0000") then
-          ps2_cd <= '0';
-        end if;
-      end if;
-    end if;
-  end process;
+
+--  process(clk, ps2_c, clk_div_en)
+--
+--    variable ps2_cd_reg : std_logic_vector (3 downto 0) := "0000";
+--
+--  begin
+--    if (rising_edge(clk)) then
+--      if(clk_div_en = '1') then
+--        ps2_cd_reg := ps2_c & ps2_cd_reg(3 downto 1);
+--        if(ps2_cd_reg = "1111") then
+--          ps2_cd <= '1';
+--        end if;
+--        if(ps2_cd_reg = "0000") then
+--          ps2_cd <= '0';
+--        end if;
+--      end if;
+--    end if;
+--  end process;
 
 -- /ps2_c debouncer ------------------------------------------------------------
 

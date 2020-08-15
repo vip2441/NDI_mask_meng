@@ -38,10 +38,13 @@ process(clk_in)
 begin
 	if(rising_edge(clk_in))then
 		count <= count + 1;
+		if count = 0 then
+			clk_out_div <= '1';
+		else
+			clk_out_div <= '0';
+		end if;
 	end if;
 end process;
-
-clk_out_div <= count(modulo);
 
 end Behavioral;
 

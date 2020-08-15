@@ -24,8 +24,8 @@ use IEEE.NUMERIC_STD.ALL;
 entity object_generator is
     Port ( clk: std_logic;
 				sel: in std_logic_vector(2 downto 0);
-           pixx, pixy : in  STD_LOGIC_VECTOR (10 downto 0);
-           offset_x, offset_y : in  STD_LOGIC_VECTOR (8 downto 0);
+           pixx, pixy : in  STD_LOGIC_VECTOR (5 downto 0);
+           offset_x, offset_y : in  STD_LOGIC_VECTOR (5 downto 0);
 			  obj_en: out std_logic;
 			  color: out std_logic_vector(2 downto 0);
 			  
